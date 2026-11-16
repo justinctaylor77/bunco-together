@@ -50,8 +50,10 @@
         Object.values(TM).forEach((x) => (x.round = 0));
         roundIdx++;
         if (roundIdx >= ROUNDS.length) finished = true;
-      }
-      turn = (turn + 1) % order.length;
+        // House rule: whoever wins the round starts the next one (in teams, the player who rolled it).
+        const wi = order.indexOf(e.pid);
+        turn = wi >= 0 ? wi : (turn + 1) % order.length;
+      } else turn = (turn + 1) % order.length;
       events.push(ev);
     }
     const units = settings.teams ? teams.map((t) => TM[t.id]) : players.map((p) => P[p.id]);

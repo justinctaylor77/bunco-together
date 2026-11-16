@@ -102,7 +102,7 @@ function rng(seed) { let s = seed; return () => ((s = (s * 1103515245 + 12345) %
 async function playGame(phones, cfg, label, shots) {
   const host = phones[0].page; const r = rng(cfg.seed || 42);
   const pidToPhone = (pid) => (cfg.entry === 'keeper' ? phones[0] : phones[Number(pid.slice(1)) - 1]);
-  let n = 0, sawAdvance = false, undoTested = false, reconnectTested = false, restoreTested = !cfg.restore, celebShot = {};
+  let winnerChecks = 0; const winnerFails = []; let n = 0, sawAdvance = false, undoTested = false, reconnectTested = false, restoreTested = !cfg.restore, celebShot = {};
   let st = await S(host);
   while (!st.finished && n < 600) {
     const pid = st.cur; const ph = pidToPhone(pid).page;
@@ -131,7 +131,8 @@ async function playGame(phones, cfg, label, shots) {
     n++;
     await waitFor(host, (len) => window.BT.S.game.log.length === len, before.logLen + 1);
     st = await S(host);
-    if (st.roundIdx > before.roundIdx) sawAdvance = true;
+    if (st.roundIdx > before.roundIdx) { sawAdvance = true; if (!st.finished) { winnerChecks++; if (st.cur !== pid) winnerFails.push(`round ${before.roundIdx + 1}: winner ${pid}, next turn ${st.cur}`); } }
+    else if (!st.finished) { const o = await host.evaluate(() => window.BT.S.comp.order); if (st.cur !== o[(o.indexOf(pid) + 1) % o.length]) winnerFails.push(`order broke after ${pid}`); }
     // screenshots of celebrations as they play
     if (shots && (kind === 'bunco' || kind === 'mini') && !celebShot[kind]) {
       const w = phones[1].page; await w.waitForSelector(`.celeb-layer#${kind}`, { timeout: 4000 }).catch(() => {}); await w.waitForTimeout(1700);
@@ -163,6 +164,7 @@ async function playGame(phones, cfg, label, shots) {
       await waitFor(host, (len) => window.BT.S.game.log.length === len, before.logLen + 1);
       st = await S(host);
       ok(st.roundIdx === before.roundIdx + 1 || st.finished, `${label}: re-entering advances everyone to the next round`);
+      ok(st.finished || st.cur === pid, `${label}: after undo + redo the round winner (${pid}) starts the next round`);
     }
     // reconnect test: reload phone 3 mid-game
     if (!reconnectTested && n === 20) {
@@ -184,6 +186,7 @@ async function playGame(phones, cfg, label, shots) {
     }
   }
   ok(sawAdvance, `${label}: rounds auto-advanced`);
+  ok(winnerChecks >= 10 && !winnerFails.length, `${label}: round winner took the first turn of the next round in ${winnerChecks}/${winnerChecks} round changes, set order otherwise ${winnerFails.join('; ')}`);
   ok(st.finished, `${label}: finished all 12 rounds in ${n} entries`);
   const roundsTotal = await host.evaluate(() => { const c = window.BT.S.comp; return (window.BT.S.game.settings.teams ? Object.values(c.teams) : Object.values(c.players)).reduce((a, x) => a + x.won.length, 0); });
   ok(roundsTotal === 12, `${label}: exactly 12 rounds were won`);

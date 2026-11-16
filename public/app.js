@@ -187,11 +187,11 @@
       <div class="celeb-sub">Five points on the board</div><div class="pts-bubble">+5</div></div></div>` };
     const who = team ? team.name : p.name;
     const lastRound = ev.roundIdx >= 11;
-    const next = lastRound ? 'That was the last round!' : `Everyone moves on to ${E.word(E.ROUNDS[ev.roundIdx + 1])}`;
+    const next = lastRound ? 'That was the last round!' : `On to ${E.word(E.ROUNDS[ev.roundIdx + 1])} · ${esc(p.name)} rolls first`;
     return { id: 'round', cls: 'felt-bg', ms: 3000, html: `<div class="overlay"><div class="rays"></div><div class="confetti">${confetti(30, ev.seq + 11)}</div><div class="sparkles">${sparks([1, 2, 3, 4, 5, 7])}</div>
       <div class="celeb-body"><div class="celeb-dice">${die(n, 'die-gold')}</div>
       <div class="celeb-kicker">Round ${ev.roundIdx + 1} cleared</div><div class="celeb-word">${esc(who)}<br>${team ? 'take' : 'takes'} the ${n}s</div>
-      <div class="celeb-sub">${team ? esc(p.name) + ' sealed it · ' : ''}${next}</div><div class="pts-bubble">Round won</div></div></div>` };
+      <div class="celeb-sub">${next}</div><div class="pts-bubble">Round won</div></div></div>` };
   }
   function playNext() {
     if (S.celebOn) return;

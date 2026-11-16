@@ -4,10 +4,14 @@ const g = (mode, teams) => ({ settings: { mode, teams: !!teams }, players: ['a',
 let x = g('classic'); let s = 0; const add = (G, kind, value) => G.log.push({ seq: ++s, pid: E.compute(G).currentPid, kind, value });
 add(x, 'pts', 20); add(x, 'mini'); add(x, 'none'); add(x, 'none');
 let c = E.compute(x); assert.equal(c.roundIdx, 0); assert.equal(c.players.a.round, 20); assert.equal(c.players.b.points, 5);
-add(x, 'pts', 1); c = E.compute(x); assert.equal(c.roundIdx, 1, 'a reaches 21 -> round 2'); assert.deepEqual(c.players.a.won, [0]); assert.equal(c.players.a.round, 0); assert.equal(c.players.a.points, 21); assert.equal(c.currentPid, 'b');
-x.log.pop(); c = E.compute(x); assert.equal(c.roundIdx, 0, 'undo reopens round');
+add(x, 'pts', 1); c = E.compute(x); assert.equal(c.roundIdx, 1, 'a reaches 21 -> round 2'); assert.deepEqual(c.players.a.won, [0]); assert.equal(c.players.a.round, 0); assert.equal(c.players.a.points, 21); assert.equal(c.currentPid, 'a', 'round winner starts the next round');
+add(x, 'pts', 3); c = E.compute(x); assert.equal(c.currentPid, 'b', 'then the set order continues');
+x.log.pop(); c = E.compute(x); assert.equal(c.currentPid, 'a');
+x.log.pop(); c = E.compute(x); assert.equal(c.roundIdx, 0, 'undo reopens round'); assert.equal(c.currentPid, 'a', 'undo gives the turn back to the roller');
 let f = g('flash'); add(f, 'mini'); add(f, 'mini'); add(f, 'mini'); add(f, 'mini'); add(f, 'mini'); c = E.compute(f); assert.equal(c.roundIdx, 1, 'flash: 10 clears'); assert.deepEqual(c.players.a.won, [0]);
-let t = g('flash', true); add(t, 'pts', 6); add(t, 'pts', 1); add(t, 'pts', 4); c = E.compute(t); assert.equal(c.roundIdx, 1, 'team a+c = 10'); assert.deepEqual(c.teams.t1.won, [0]); assert.deepEqual(c.players.c.won, [0]); assert.equal(c.teams.t1.points, 10);
-let full = g('classic'); for (let i = 0; i < 12; i++) add(full, 'bunco'); c = E.compute(full); assert.ok(c.finished); assert.equal(c.awards.rounds.ids.length, 4); assert.equal(c.awards.minis.ids.length, 0);
+let t = g('flash', true); add(t, 'pts', 6); add(t, 'pts', 1); add(t, 'pts', 4); c = E.compute(t); assert.equal(c.roundIdx, 1, 'team a+c = 10'); assert.equal(c.currentPid, 'c', 'teams: the player who rolled the winner starts next'); assert.deepEqual(c.teams.t1.won, [0]); assert.deepEqual(c.players.c.won, [0]); assert.equal(c.teams.t1.points, 10);
+let full = g('classic'); for (let i = 0; i < 12; i++) add(full, 'bunco'); c = E.compute(full); assert.ok(c.finished); assert.deepEqual(c.awards.rounds, { value: 12, ids: ['a'], team: false }, 'winner keeps rolling first'); assert.equal(c.awards.minis.ids.length, 0);
 assert.ok(E.validEntry('flash', 'pts', 10)); assert.ok(!E.validEntry('flash', 'pts', 11)); assert.ok(E.validEntry('classic', 'pts', 21)); assert.ok(!E.validEntry('classic', 'pts', 0));
+let m = g('flash'); add(m, 'none'); add(m, 'bunco'); c = E.compute(m); assert.equal(c.currentPid, 'b'); add(m, 'none'); assert.equal(E.compute(m).currentPid, 'c');
+m.log.pop(); m.log.pop(); c = E.compute(m); assert.equal(c.currentPid, 'b'); assert.equal(c.roundIdx, 0, 'undo of the win restores b on round 1');
 console.log('engine tests passed');
