@@ -1,0 +1,12 @@
+# Render Blueprint: free web service, no database (games live in memory + a JSON file; phones keep a copy to restore).
+services:
+  - type: web
+    name: bunco-together
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>BUNCO Together</title>
+<meta name="description" content="Keep Bunco score together, wherever you roll.">
+<meta name="theme-color" content="#0C3B2C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BUNCO">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="preload" href="/fonts/lilita-one-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/great-vibes-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/nunito.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/mock.css?v=1">
+<link rel="stylesheet" href="/app.css?v=1">
+</head>
+<body class="felt">
+<div id="splash" class="splash felt is-playing" aria-label="BUNCO Together">
+  <div class="rays"></div>
+  <div class="splash-body">
+    <div class="hero-dice">
+      <div class="floater d1"><div class="die" data-face="5"></div></div>
+      <div class="floater d2"><div class="die die-red center" data-face="6"></div></div>
+      <div class="floater d3"><div class="die" data-face="3"></div></div>
+    </div>
+    <div class="lockup on-felt"><span class="bunco">BUNCO</span><span class="together">Together</span></div>
+    <p class="splash-tag">Keep score together, wherever you roll.</p>
+  </div>
+</div>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="/engine.js?v=1"></script>
+<script src="/app.js?v=1"></script>
+</body>
+</html>

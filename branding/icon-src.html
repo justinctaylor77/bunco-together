@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BUNCO Together — Branding</title>
+<style>
+@font-face {
+  font-family: "Lilita One";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../../bunco-mockups/fonts/lilita-one-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Great Vibes";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../../bunco-mockups/fonts/great-vibes-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("../../bunco-mockups/fonts/nunito.woff2") format("woff2");
+}
+
+:root {
+  --cream: #F3EADA;
+  --cream-deep: #E7D9C3;
+  --paper: #FFFBF4;
+  --ink: #1A1612;
+  --ink-soft: #5C5348;
+  --felt: #165A43;
+  --felt-deep: #0C3B2C;
+  --felt-mid: #1A684E;
+  --gold: #C48E10;
+  --gold-bright: #F0C14B;
+  --gold-soft: #F8E4A8;
+  --coral: #E14A3A;
+  --coral-deep: #C13225;
+  --teal: #1F7A63;
+  --violet: #6B5C9E;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #d9cbb3; }
+body {
+  font-family: "Nunito", sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dice (shared, scales via --die-size) */
+.die {
+  --die-size: 56px;
+  --pip: #1A1612;
+  width: var(--die-size);
+  height: var(--die-size);
+  border-radius: calc(var(--die-size) * 0.22);
+  background-color: #FFFCFA;
+  background-repeat: no-repeat;
+  background-size: 18% 18%;
+  box-shadow:
+    0 1px 0 rgba(26,22,18,0.08),
+    0 calc(var(--die-size) * 0.08) calc(var(--die-size) * 0.22) rgba(26,22,18,0.18),
+    inset 0 calc(var(--die-size) * -0.05) 0 rgba(26,22,18,0.06);
+  position: relative;
+  flex: 0 0 var(--die-size);
+}
+.die.die-red {
+  background-color: #C13225;
+  --pip: #FFFCFA;
+  box-shadow:
+    0 1px 0 rgba(26,22,18,0.15),
+    0 calc(var(--die-size) * 0.08) calc(var(--die-size) * 0.22) rgba(193,50,37,0.28),
+    inset 0 calc(var(--die-size) * -0.05) 0 rgba(0,0,0,0.15);
+}
+.die.die-gold {
+  background-color: #F0C14B;
+  --pip: #1A1612;
+}
+.die[data-face="1"] {
+  background-image: radial-gradient(circle, var(--pip) 68%, transparent 72%);
+  background-position: 50% 50%;
+}
+.die[data-face="2"] {
+  background-image:
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%);
+  background-position: 24% 24%, 76% 76%;
+}
+.die[data-face="3"] {
+  background-image:
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%);
+  background-position: 24% 24%, 50% 50%, 76% 76%;
+}
+.die[data-face="4"] {
+  background-image:
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%);
+  background-position: 24% 24%, 76% 24%, 24% 76%, 76% 76%;
+}
+.die[data-face="5"] {
+  background-image:
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%);
+  background-position: 24% 24%, 76% 24%, 50% 50%, 24% 76%, 76% 76%;
+}
+.die[data-face="6"] {
+  background-image:
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%),
+    radial-gradient(circle, var(--pip) 68%, transparent 72%);
+  background-position: 24% 24%, 76% 24%, 24% 50%, 76% 50%, 24% 76%, 76% 76%;
+}
+
+/* Wordmark */
+.lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  text-align: center;
+}
+.lockup .bunco {
+  font-family: "Lilita One", system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 0.88;
+  color: var(--ink);
+}
+.lockup .together {
+  font-family: "Great Vibes", cursive;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.85;
+  color: var(--teal);
+  margin-top: -0.12em;
+  padding: 0 0.15em 0.22em;
+}
+.lockup.on-felt .bunco { color: #FFFBF4; }
+.lockup.on-felt .together { color: var(--gold-bright); }
+
+/* ========== ICONS ========== */
+.icon-master {
+  width: 1024px;
+  height: 1024px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.icon-master .sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.14), transparent 42%, rgba(0,0,0,0.08));
+  box-shadow: inset 0 0 0 6px rgba(255,255,255,0.07);
+}
+
+/* A — Trio + B */
+.theme-a {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(240,193,75,0.22), transparent 52%),
+    radial-gradient(rgba(255,255,255,0.05) 1.5px, transparent 1.7px),
+    linear-gradient(180deg, #1A684E, var(--felt-deep));
+  background-size: auto, 14px 14px, auto;
+}
+.theme-a .cluster {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  width: 820px;
+  height: 520px;
+}
+.theme-a .cluster .die {
+  --die-size: 340px;
+  position: absolute;
+}
+.theme-a .d1 { left: 40px; top: 90px; transform: rotate(-18deg); z-index: 1; }
+.theme-a .d2 { --die-size: 390px; left: 215px; top: 20px; transform: rotate(5deg); z-index: 2; }
+.theme-a .d3 { left: 440px; top: 100px; transform: rotate(17deg); z-index: 1; }
+.badge-b {
+  position: absolute;
+  left: 50%;
+  bottom: 110px;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--gold-bright);
+  color: var(--ink);
+  font-family: "Lilita One", sans-serif;
+  font-size: 150px;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.28), 0 0 0 10px rgba(248,228,168,0.25);
+  z-index: 4;
+  line-height: 1;
+  padding-top: 8px;
+}
+
+/* B — Together heart */
+.theme-b {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(240,193,75,0.35), transparent 46%),
+    radial-gradient(rgba(26,22,18,0.04) 1.2px, transparent 1.4px),
+    linear-gradient(180deg, #FFF8EC, #EAD9BE);
+  background-size: auto, 12px 12px, auto;
+}
+.theme-b .pair {
+  position: absolute;
+  inset: 0;
+}
+.theme-b .pair .die {
+  --die-size: 400px;
+  position: absolute;
+  top: 300px;
+}
+.theme-b .dl { left: 70px; transform: rotate(-16deg); z-index: 1; }
+.theme-b .dr { right: 70px; transform: rotate(16deg); z-index: 1; }
+.heart-svg {
+  position: absolute;
+  left: 50%;
+  top: 268px;
+  width: 200px;
+  height: 200px;
+  transform: translateX(-50%);
+  z-index: 3;
+  filter: drop-shadow(0 14px 20px rgba(193,50,37,0.32));
+  overflow: visible;
+}
+
+/* C — BT monogram */
+.theme-c {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(240,193,75,0.2), transparent 50%),
+    radial-gradient(rgba(255,255,255,0.05) 1.5px, transparent 1.7px),
+    linear-gradient(180deg, #1A684E, var(--felt-deep));
+  background-size: auto, 14px 14px, auto;
+}
+.mono {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mono .m-b {
+  font-family: "Lilita One", sans-serif;
+  font-size: 560px;
+  color: var(--gold-bright);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-shadow: 0 18px 0 rgba(12,59,44,0.35);
+  position: relative;
+  z-index: 1;
+  margin-left: -70px;
+  margin-top: 10px;
+}
+.mono .m-t {
+  font-family: "Great Vibes", cursive;
+  font-size: 360px;
+  color: #FFFBF4;
+  position: absolute;
+  left: 42%;
+  top: 32%;
+  line-height: 0.8;
+  z-index: 2;
+  text-shadow: 0 10px 0 rgba(12,59,44,0.25);
+  padding: 0 0.2em 0.25em 0;
+}
+.corner-pip {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  background: var(--gold-soft);
+  border-radius: 50%;
+  z-index: 3;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.12);
+}
+.corner-pip.tl { top: 88px; left: 88px; }
+.corner-pip.tr { top: 88px; right: 88px; }
+.corner-pip.bl { bottom: 88px; left: 88px; }
+.corner-pip.br { bottom: 88px; right: 88px; }
+.corner-pip.cc { top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; }
+
+/* D — Bunco roll */
+.theme-d {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(240,193,75,0.32), transparent 46%),
+    radial-gradient(rgba(255,255,255,0.05) 1.5px, transparent 1.7px),
+    linear-gradient(180deg, #1A684E, var(--felt-deep));
+  background-size: auto, 14px 14px, auto;
+}
+.theme-d .rays {
+  position: absolute;
+  width: 140%;
+  height: 140%;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(
+    from 8deg,
+    rgba(248,228,168,0) 0 14deg,
+    rgba(248,228,168,0.14) 14deg 18deg
+  );
+  border-radius: 50%;
+  opacity: 0.85;
+}
+.theme-d .arc {
+  position: absolute;
+  inset: 0;
+}
+.theme-d .arc .die {
+  --die-size: 340px;
+  position: absolute;
+  top: 300px;
+}
+.theme-d .arc .die { --die-size: 292px; }
+.theme-d .a1 { left: 34px; top: 372px; transform: rotate(-14deg); z-index: 1; }
+.theme-d .a2 { --die-size: 372px; left: 326px; top: 250px; transform: rotate(4deg); z-index: 3; }
+.theme-d .a3 { left: 698px; top: 372px; transform: rotate(14deg); z-index: 1; }
+
+/* iOS previews */
+.ios-stage {
+  width: 1200px;
+  height: 1200px;
+  background: #E8DFD0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.ios-mask {
+  width: 1024px;
+  height: 1024px;
+  border-radius: 22.37%;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 40px 80px rgba(26,22,18,0.28),
+    0 8px 18px rgba(26,22,18,0.12);
+}
+.ios-mask .icon-master {
+  /* fill the mask */
+}
+
+/* ========== SPLASHES ========== */
+.splash {
+  width: 390px;
+  height: 844px;
+  position: relative;
+  overflow: hidden;
+}
+.splash .status {
+  height: 54px;
+  padding: 16px 28px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 5;
+}
+.sys { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.signal {
+  width: 18px; height: 10px;
+  background: currentColor;
+  clip-path: polygon(0 100%, 22% 100%, 22% 70%, 44% 70%, 44% 45%, 66% 45%, 66% 22%, 100% 22%, 100% 100%);
+  opacity: 0.9;
+}
+.wifi {
+  width: 16px; height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 50% 50% 0 0;
+  border-bottom: 0;
+  position: relative;
+  opacity: 0.9;
+  transform: scale(0.85);
+}
+.wifi::after {
+  content: "";
+  position: absolute;
+  width: 4px; height: 4px;
+  background: currentColor;
+  border-radius: 50%;
+  left: 4px; bottom: -1px;
+}
+.battery {
+  width: 24px; height: 11px;
+  border: 1.6px solid currentColor;
+  border-radius: 3px;
+  position: relative;
+  opacity: 0.9;
+}
+.battery::before {
+  content: "";
+  position: absolute;
+  inset: 1.5px 7px 1.5px 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+}
+.battery::after {
+  content: "";
+  position: absolute;
+  right: -4px; top: 2.5px;
+  width: 2px; height: 5px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+  opacity: 0.7;
+}
+.home-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 128px;
+  height: 5px;
+  background: rgba(26,22,18,0.22);
+  border-radius: 99px;
+  z-index: 6;
+}
+.splash.felt .home-bar { background: rgba(255,255,255,0.38); }
+.splash.felt .status { color: #F6EFE2; }
+
+.splash-body {
+  position: absolute;
+  inset: 54px 0 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.splash .lockup .bunco { font-size: 64px; }
+.splash .lockup .together { font-size: 50px; }
+.splash-tag {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+}
+.splash.felt .splash-tag { color: rgba(246,239,226,0.75); }
+
+/* Splash A — cream table */
+#splash-a {
+  background:
+    radial-gradient(rgba(26,22,18,0.03) 0.7px, transparent 0.9px),
+    linear-gradient(180deg, #F8F1E4 0%, var(--cream) 40%, #EADBC4 100%);
+  background-size: 6px 6px, 100% 100%;
+}
+#splash-a .glow {
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,193,75,0.3), transparent 68%);
+  top: 150px; left: 50%; transform: translateX(-50%);
+  pointer-events: none;
+}
+#splash-a .hero-dice, #splash-c .hero-dice, #splash-b .hero-dice {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 130px;
+  margin-bottom: 18px;
+}
+#splash-a .hero-dice .die, #splash-c .hero-dice .die {
+  --die-size: 78px;
+  margin: 0 -8px;
+}
+#splash-a .hero-dice .die.center { --die-size: 88px; z-index: 2; }
+
+/* Splash B — felt glow */
+#splash-b {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(240,193,75,0.28), transparent 42%),
+    radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1.2px),
+    linear-gradient(180deg, #1A684E, var(--felt-deep));
+  background-size: auto, 5px 5px, auto;
+}
+#splash-b .rays {
+  position: absolute;
+  width: 720px; height: 720px;
+  left: 50%; top: 38%;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(248,228,168,0) 0 12deg,
+    rgba(248,228,168,0.1) 12deg 15deg
+  );
+  border-radius: 50%;
+  opacity: 0.7;
+  pointer-events: none;
+}
+#splash-b .hero-dice .die { --die-size: 78px; margin: 0 -8px; }
+#splash-b .hero-dice .die.center { --die-size: 88px; z-index: 2; }
+
+/* Splash C — close-up toss */
+#splash-c {
+  background:
+    radial-gradient(rgba(26,22,18,0.03) 0.7px, transparent 0.9px),
+    linear-gradient(165deg, #165A43 0%, #0C3B2C 48%, #1A1612 100%);
+  background-size: 6px 6px, 100% 100%;
+  color: #FFFBF4;
+}
+#splash-c .status { color: #F6EFE2; }
+#splash-c .home-bar { background: rgba(255,255,255,0.38); }
+#splash-c .bg-dice {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+#splash-c .bg-dice .die {
+  position: absolute;
+  opacity: 0.22;
+}
+#splash-c .bg-dice .x1 { --die-size: 240px; left: -70px; top: 80px; transform: rotate(-28deg); opacity: 0.3; }
+#splash-c .bg-dice .x2 { --die-size: 200px; right: -60px; top: 200px; transform: rotate(22deg); opacity: 0.26; }
+#splash-c .bg-dice .x3 { --die-size: 160px; left: 40px; bottom: 70px; transform: rotate(16deg); opacity: 0.2; }
+#splash-c .splash-tag { color: rgba(246,239,226,0.75); }
+
+/* Motion (for video) */
+.splash.is-playing .floater {
+  animation: floaty 3.2s ease-in-out infinite;
+}
+.splash.is-playing .floater.d2 { animation-delay: 0.15s; }
+.splash.is-playing .floater.d3 { animation-delay: 0.3s; }
+.splash.is-playing .lockup .bunco {
+  animation: rise 0.7s cubic-bezier(0.22, 0.9, 0.3, 1) 0.15s both;
+}
+.splash.is-playing .lockup .together {
+  animation: rise-script 0.85s cubic-bezier(0.22, 0.9, 0.3, 1) 0.4s both;
+}
+.splash.is-playing .splash-tag {
+  animation: rise 0.7s ease 0.7s both;
+}
+.splash.is-playing#splash-b .rays {
+  animation: spin 22s linear infinite;
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  50% { transform: translateY(-11px) rotate(calc(var(--tilt, 0deg) + 5deg)); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rise-script {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Static tilt when not playing */
+.floater { display: inline-flex; }
+.floater.d1 { --tilt: -16deg; transform: translateY(-10px) rotate(var(--tilt)); }
+.floater.d2 { --tilt: 5deg; transform: rotate(var(--tilt)); }
+.floater.d3 { --tilt: 18deg; transform: translateY(-12px) rotate(var(--tilt)); }
+
+/* ========== HOME SCREEN COMPARISON ========== */
+#homescreen {
+  width: 390px;
+  height: 844px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(240,193,75,0.28), transparent 50%),
+    linear-gradient(180deg, #1A684E 0%, #0F4A38 40%, #1A1612 100%);
+  color: #FFFBF4;
+}
+#homescreen .wallpaper-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.2px);
+  background-size: 6px 6px;
+  pointer-events: none;
+}
+#homescreen .status { color: #F6EFE2; }
+#homescreen .intro {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 8px 20px 0;
+}
+#homescreen .intro .kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: 6px;
+}
+#homescreen .intro .lockup .bunco { font-size: 42px; color: #FFFBF4; }
+#homescreen .intro .lockup .together { font-size: 34px; color: var(--gold-bright); }
+#homescreen .intro p {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(246,239,226,0.7);
+}
+.grid-label {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin: 18px 0 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(246,239,226,0.55);
+}
+.app-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 60px);
+  justify-content: space-between;
+  padding: 0 28px;
+  gap: 14px 0;
+}
+.app-cell { text-align: center; width: 60px; }
+.app-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 13.4px; /* ~22.37% of 60 */
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.28);
+  position: relative;
+}
+.app-icon .icon-master,
+.dock .app-icon .icon-master {
+  width: 1024px !important;
+  height: 1024px !important;
+  transform-origin: top left;
+  transform: scale(calc(60 / 1024));
+}
+.app-name {
+  margin-top: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #FFFBF4;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.large-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 22px 0;
+}
+.large-cell { text-align: center; }
+.large-icon {
+  width: 92px;
+  height: 92px;
+  border-radius: 20.6px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+.large-icon .icon-master {
+  width: 1024px;
+  height: 1024px;
+  transform-origin: top left;
+  transform: scale(calc(92 / 1024));
+}
+.large-cell .app-name { font-size: 11px; margin-top: 6px; }
+.dock {
+  position: absolute;
+  z-index: 3;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  height: 94px;
+  background: rgba(255,255,255,0.16);
+  backdrop-filter: blur(16px);
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 14px 10px;
+}
+.dock .app-icon { box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+.dock .ghost {
+  width: 60px; height: 60px;
+  border-radius: 13.4px;
+  background: rgba(255,255,255,0.18);
+}
+#homescreen .home-bar { background: rgba(255,255,255,0.4); }
+
+/* Gallery framing when opened directly */
+.page-intro { max-width: 1100px; margin: 0 auto; padding: 40px 24px 12px; text-align: center; }
+.page-intro h1 { font-family: "Lilita One", sans-serif; font-size: 40px; letter-spacing: 0.04em; }
+.page-intro .together { font-family: "Great Vibes", cursive; font-size: 36px; color: var(--teal); display: block; margin-top: -4px; }
+.gallery { display: flex; flex-wrap: wrap; gap: 40px 28px; justify-content: center; padding: 24px 24px 80px; }
+figure.shot { margin: 0; }
+figure.shot figcaption {
+  font-weight: 800; font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-soft);
+  text-align: center; margin-bottom: 10px;
+}
+
+body.solo { background: #000; margin: 0; }
+body.solo .page-intro, body.solo figure.shot figcaption { display: none; }
+body.solo .gallery { padding: 0; gap: 0; display: block; }
+body.solo figure.shot { display: none; }
+body.solo figure.shot.show { display: block; }
+</style>
+</head>
+<body>
+  <header class="page-intro">
+    <h1>BUNCO</h1>
+    <span class="together">Together</span>
+  </header>
+  <main class="gallery">
+
+    <!-- ICONS 1024 -->
+    <figure class="shot" data-screen="icon-a">
+      <figcaption>Icon A · 1024 master</figcaption>
+      <div class="icon-master theme-a" id="icon-a">
+        <div class="cluster">
+          <div class="die d1" data-face="5"></div>
+          <div class="die die-red d2" data-face="6"></div>
+          <div class="die d3" data-face="3"></div>
+        </div>
+        <div class="badge-b">B</div>
+        <div class="sheen"></div>
+      </div>
+    </figure>
+
+    <figure class="shot" data-screen="icon-b">
+      <figcaption>Icon B · 1024 master</figcaption>
+      <div class="icon-master theme-b" id="icon-b">
+        <div class="pair">
+          <div class="die dl" data-face="5"></div>
+          <div class="die die-red dr" data-face="3"></div>
+        </div>
+        <svg class="heart-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E14A3A" d="M12.1 21.35l-1.1-1C6.14 15.24 2.5 11.92 2.5 8.2 2.5 5.3 4.8 3 7.7 3c1.74 0 3.41.81 4.4 2.09C13.09 3.81 14.76 3 16.5 3c2.9 0 5.2 2.3 5.2 5.2 0 3.72-3.64 7.04-8.5 12.15l-1.1 1z"/></svg>
+        <div class="sheen"></div>
+      </div>
+    </figure>
+
+    <figure class="shot" data-screen="icon-c">
+      <figcaption>Icon C · 1024 master</figcaption>
+      <div class="icon-master theme-c" id="icon-c">
+        <div class="corner-pip tl"></div>
+        <div class="corner-pip tr"></div>
+        <div class="corner-pip bl"></div>
+        <div class="corner-pip br"></div>
+        <div class="mono">
+          <span class="m-b">B</span>
+          <span class="m-t">T</span>
+        </div>
+        <div class="sheen"></div>
+      </div>
+    </figure>
+
+    <figure class="shot" data-screen="icon-d">
+      <figcaption>Icon D · 1024 master</figcaption>
+      <div class="icon-master theme-d" id="icon-d">
+        <div class="rays"></div>
+        <div class="arc">
+          <div class="die a1" data-face="5"></div>
+          <div class="die die-red a2" data-face="5"></div>
+          <div class="die a3" data-face="5"></div>
+        </div>
+        <div class="sheen"></div>
+      </div>
+    </figure>
+
+    <!-- iOS previews -->
+    <figure class="shot" data-screen="icon-a-ios">
+      <figcaption>Icon A · iOS preview</figcaption>
+      <div class="ios-stage" id="icon-a-ios">
+        <div class="ios-mask theme-a">
+          <div class="cluster">
+            <div class="die d1" data-face="5"></div>
+            <div class="die die-red d2" data-face="6"></div>
+            <div class="die d3" data-face="3"></div>
+          </div>
+          <div class="badge-b">B</div>
+          <div class="sheen"></div>
+        </div>
+      </div>
+    </figure>
+    <figure class="shot" data-screen="icon-b-ios">
+      <figcaption>Icon B · iOS preview</figcaption>
+      <div class="ios-stage" id="icon-b-ios">
+        <div class="ios-mask theme-b">
+          <div class="pair">
+            <div class="die dl" data-face="5"></div>
+            <div class="die die-red dr" data-face="3"></div>
+          </div>
+          <svg class="heart-svg" viewBox="0 0 24 24" aria-hidden="true"><path fill="#E14A3A" d="M12.1 21.35l-1.1-1C6.14 15.24 2.5 11.92 2.5 8.2 2.5 5.3 4.8 3 7.7 3c1.74 0 3.41.81 4.4 2.09C13.09 3.81 14.76 3 16.5 3c2.9 0 5.2 2.3 5.2 5.2 0 3.72-3.64 7.04-8.5 12.15l-1.1 1z"/></svg>
+          <div class="sheen"></div>
+        </div>
+      </div>
+    </figure>
+    <figure class="shot" data-screen="icon-c-ios">
+      <figcaption>Icon C · iOS preview</figcaption>
+      <div class="ios-stage" id="icon-c-ios">
+        <div class="ios-mask theme-c">
+          <div class="corner-pip tl"></div>
+          <div class="corner-pip tr"></div>
+          <div class="corner-pip bl"></div>
+          <div class="corner-pip br"></div>
+          <div class="mono">
+            <span class="m-b">B</span>
+            <span class="m-t">T</span>
+          </div>
+          <div class="sheen"></div>
+        </div>
+      </div>
+    </figure>
+    <figure class="shot" data-screen="icon-d-ios">
+      <figcaption>Icon D · iOS preview</figcaption>
+      <div class="ios-stage" id="icon-d-ios">
+        <div class="ios-mask theme-d">
+          <div class="rays"></div>
+          <div class="arc">
+            <div class="die a1" data-face="5"></div>
+            <div class="die die-red a2" data-face="5"></div>
+            <div class="die a3" data-face="5"></div>
+          </div>
+          <div class="sheen"></div>
+        </div>
+      </div>
+    </figure>
+
+    <!-- SPLASHES -->
+    <figure class="shot" data-screen="splash-a">
+      <figcaption>Splash A · Cream table</figcaption>
+      <div class="splash" id="splash-a">
+        <div class="status"><span class="time">7:14</span><div class="sys"><span class="signal"></span><span class="wifi"></span><span class="battery"></span></div></div>
+        <div class="glow"></div>
+        <div class="splash-body">
+          <div class="hero-dice">
+            <div class="floater d1"><div class="die" data-face="5"></div></div>
+            <div class="floater d2"><div class="die die-red center" data-face="6"></div></div>
+            <div class="floater d3"><div class="die" data-face="3"></div></div>
+          </div>
+          <div class="lockup">
+            <span class="bunco">BUNCO</span>
+            <span class="together">Together</span>
+          </div>
+          <p class="splash-tag">Keep score together, wherever you roll.</p>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </figure>
+
+    <figure class="shot" data-screen="splash-b">
+      <figcaption>Splash B · Felt glow</figcaption>
+      <div class="splash felt" id="splash-b">
+        <div class="status"><span class="time">7:14</span><div class="sys"><span class="signal"></span><span class="wifi"></span><span class="battery"></span></div></div>
+        <div class="rays"></div>
+        <div class="splash-body">
+          <div class="hero-dice">
+            <div class="floater d1"><div class="die" data-face="5"></div></div>
+            <div class="floater d2"><div class="die die-red center" data-face="6"></div></div>
+            <div class="floater d3"><div class="die" data-face="3"></div></div>
+          </div>
+          <div class="lockup on-felt">
+            <span class="bunco">BUNCO</span>
+            <span class="together">Together</span>
+          </div>
+          <p class="splash-tag">Keep score together, wherever you roll.</p>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </figure>
+
+    <figure class="shot" data-screen="splash-c">
+      <figcaption>Splash C · Close-up toss</figcaption>
+      <div class="splash" id="splash-c">
+        <div class="status"><span class="time">7:14</span><div class="sys"><span class="signal"></span><span class="wifi"></span><span class="battery"></span></div></div>
+        <div class="bg-dice">
+          <div class="die die-red x1" data-face="5"></div>
+          <div class="die x2" data-face="6"></div>
+          <div class="die die-gold x3" data-face="3"></div>
+        </div>
+        <div class="splash-body">
+          <div class="hero-dice">
+            <div class="floater d1"><div class="die" data-face="5"></div></div>
+            <div class="floater d2"><div class="die die-red center" data-face="6"></div></div>
+            <div class="floater d3"><div class="die" data-face="3"></div></div>
+          </div>
+          <div class="lockup on-felt">
+            <span class="bunco">BUNCO</span>
+            <span class="together">Together</span>
+          </div>
+          <p class="splash-tag">Keep score together, wherever you roll.</p>
+        </div>
+        <div class="home-bar"></div>
+      </div>
+    </figure>
+
+    <!-- Comparison homescreen is built in JS/HTML with scaled clones; static structure below uses CSS scale of full icons -->
+    <figure class="shot" data-screen="homescreen">
+      <figcaption>Icon comparison · home screen</figcaption>
+      <div id="homescreen">
+        <div class="wallpaper-dots"></div>
+        <div class="status"><span class="time">7:14</span><div class="sys"><span class="signal"></span><span class="wifi"></span><span class="battery"></span></div></div>
+        <div class="intro">
+          <div class="kicker">Icon options</div>
+          <div class="lockup on-felt">
+            <span class="bunco">BUNCO</span>
+            <span class="together">Together</span>
+          </div>
+          <p>Same name, four icon directions</p>
+        </div>
+        <div class="grid-label">Home-screen size</div>
+        <div class="app-grid" id="grid-small"></div>
+        <div class="grid-label">A little closer</div>
+        <div class="large-row" id="grid-large"></div>
+        <div class="dock" id="dock"></div>
+        <div class="home-bar"></div>
+      </div>
+    </figure>
+
+  </main>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search);
+  const screen = q.get("screen");
+  const play = q.get("play") === "1";
+  if (screen) {
+    document.body.classList.add("solo");
+    document.querySelectorAll("figure.shot").forEach((fig) => {
+      if (fig.getAttribute("data-screen") === screen) fig.classList.add("show");
+    });
+  }
+  if (play) {
+    const splash = document.getElementById(screen || "splash-b");
+    if (splash) splash.classList.add("is-playing");
+  }
+
+  // Clone icon innards into home-screen grid at scaled size
+  const icons = [
+    { id: "icon-a", label: "Trio" },
+    { id: "icon-b", label: "Heart" },
+    { id: "icon-c", label: "Monogram" },
+    { id: "icon-d", label: "Roll" },
+  ];
+  const small = document.getElementById("grid-small");
+  const large = document.getElementById("grid-large");
+  const dock = document.getElementById("dock");
+  if (small) {
+    icons.forEach((ic) => {
+      const src = document.getElementById(ic.id);
+      const cell = document.createElement("div");
+      cell.className = "app-cell";
+      const wrap = document.createElement("div");
+      wrap.className = "app-icon";
+      const clone = src.cloneNode(true);
+      clone.id = "";
+      wrap.appendChild(clone);
+      const name = document.createElement("div");
+      name.className = "app-name";
+      name.textContent = ic.label;
+      cell.append(wrap, name);
+      small.appendChild(cell);
+
+      const lcell = document.createElement("div");
+      lcell.className = "large-cell";
+      const lwrap = document.createElement("div");
+      lwrap.className = "large-icon";
+      const lclone = src.cloneNode(true);
+      lclone.id = "";
+      lwrap.appendChild(lclone);
+      const lname = document.createElement("div");
+      lname.className = "app-name";
+      lname.textContent = ic.label;
+      lcell.append(lwrap, lname);
+      large.appendChild(lcell);
+    });
+    // Dock: recommended icon (filled later visually; start with A) plus ghosts
+    ["icon-d", "ghost", "ghost", "ghost"].forEach((id, i) => {
+      if (id === "ghost") {
+        const g = document.createElement("div");
+        g.className = "ghost";
+        dock.appendChild(g);
+      } else {
+        const wrap = document.createElement("div");
+        wrap.className = "app-icon";
+        const clone = document.getElementById(id).cloneNode(true);
+        clone.id = "";
+        wrap.appendChild(clone);
+        dock.appendChild(wrap);
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

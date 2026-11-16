@@ -1,0 +1,10 @@
+import { chromium } from "/workspace/envelopes-app/node_modules/playwright-core/index.mjs";
+import path from "node:path"; import { fileURLToPath } from "node:url";
+const dir = path.dirname(fileURLToPath(import.meta.url));
+const b = await chromium.launch({ executablePath: "/usr/bin/google-chrome", args: ["--no-sandbox"] });
+const ctx = await b.newContext({ viewport: { width: 1024, height: 1024 } });
+const pg = await ctx.newPage();
+await pg.goto("file://" + path.join(dir, "icon-src.html") + "?screen=icon-d");
+await pg.evaluate(() => document.fonts.ready);
+await pg.locator(".icon-master#icon-d").screenshot({ path: path.join(dir, "icon-roll-bunco-1024.png") });
+await b.close();
