@@ -1863,3 +1863,5 @@ figure.shot figcaption {
 .spark.s6 { bottom: 22%; left: 22%; animation-delay: 0.5s !important; }
 .spark.s7 { bottom: 26%; right: 20%; width: 16px; height: 16px; animation-delay: 0.1s !important; }
 
+
+.btn-mini .hint, .btn-bunco .hint { font-size: 12px; font-weight: 700; margin-top: 3px; }

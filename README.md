@@ -2,7 +2,7 @@
 
 Family Bunco scorekeeping for game night over FaceTime. Everyone rolls real dice at home and keeps score together in the app on their own phone.
 
-- **Modes:** Classic 21 (first to 21 wins the round) and Flash 10 (first to 10). Mini Bunco = 5, Bunco = 21 in both.
+- **Modes:** Classic 21 (first to 21 wins the round) and Flash 10 (first to 10). Mini Bunco (three of a kind that is not the round number) = 5, Bunco (three of the round number) = 21 in both.
 - **12 rounds:** 1 → 6, then 6 → 1. When a player (or team) reaches the target, everyone moves to the next number automatically, and the player who rolled the winning entry starts the new round; turns then follow the set order.
 - **One tap per turn:** Nothing, 1–21 (or 1–10), Mini Bunco, Bunco. Undo for mis-taps.
 - **Setup:** players & names → who enters scores (everyone / one scorekeeper) → individual or teams → teams (swap, rename, auto-split) → turn order (drag, arrows, shuffle).

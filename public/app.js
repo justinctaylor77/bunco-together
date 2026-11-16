@@ -182,9 +182,9 @@
       <div class="celeb-kicker">${esc(p.name)} rolled it</div><div class="celeb-word">Bunco!</div>
       <div class="celeb-sub">Three ${w} · the whole table saw that</div><div class="pts-bubble">+21</div></div></div>` };
     if (c.type === 'mini') return { id: 'mini', cls: 'cream-bg', ms: 2600, html: `<div class="overlay"><div class="rays"></div><div class="confetti">${confetti(22, ev.seq + 5)}</div><div class="sparkles">${sparks([1, 2, 5, 6])}</div>
-      <div class="celeb-body"><div class="celeb-dice">${die(n, 'die-gold')}${die(n, 'die-gold')}</div>
+      <div class="celeb-body"><div class="celeb-dice">${die(n % 6 + 1, 'die-gold')}${die(n % 6 + 1, 'die-gold')}${die(n % 6 + 1, 'die-gold')}</div>
       <div class="celeb-kicker">${esc(p.name)} rolled it</div><div class="celeb-word">Mini<br>Bunco</div>
-      <div class="celeb-sub">Five points on the board</div><div class="pts-bubble">+5</div></div></div>` };
+      <div class="celeb-sub">Three of a kind · five points on the board</div><div class="pts-bubble">+5</div></div></div>` };
     const who = team ? team.name : p.name;
     const lastRound = ev.roundIdx >= 11;
     const next = lastRound ? 'That was the last round!' : `On to ${E.word(E.ROUNDS[ev.roundIdx + 1])} · ${esc(p.name)} rolls first`;
@@ -566,8 +566,8 @@
       <div class="entry"><button class="nothing" data-act="none">Nothing</button>
         <div class="nums ${T === 10 ? 'flash10' : ''}">${nums}</div>
         ${T === 21 ? '<div class="n21-wrap"><button data-act="pts" data-v="21">21</button></div>' : ''}
-        <div class="specials"><button class="btn-mini" data-act="mini"><span class="lbl">Mini Bunco</span><span class="pts">worth 5</span></button>
-          <button class="btn-bunco" data-act="bunco"><span class="lbl">Bunco</span><span class="pts">worth 21</span></button></div>
+        <div class="specials"><button class="btn-mini" data-act="mini"><span class="lbl">Mini Bunco</span><span class="hint">3 of a kind, not ${c.number}s</span><span class="pts">worth 5</span></button>
+          <button class="btn-bunco" data-act="bunco"><span class="lbl">Bunco</span><span class="hint">three ${c.number}s</span><span class="pts">worth 21</span></button></div>
         <a class="view-table" data-act="go" data-view="table">View the table</a></div></div>`;
   };
 
