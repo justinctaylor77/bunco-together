@@ -160,7 +160,7 @@
       if (!g || g.status !== 'playing' || S.view !== 'table' || $('#sheet')) { cancelAutoNext(); render(); return; }
       if (!canEnterFor(S.comp.currentPid)) { cancelAutoNext(); return; }
       if (S.celebOn || S.celebQ.length) { if (S.autoArmed) { S.autoArmed = false; render(); } return; }
-      if (!S.autoArmed) { S.autoArmed = true; S.autoAt = Date.now() + AUTO_MS; render(); return; }
+      if (!S.autoArmed) { const L = S.comp.last; S.autoArmed = true; S.autoAt = Date.now() + (L && L.keepRolling && L.pid === S.comp.currentPid ? 700 : AUTO_MS); render(); return; }
       if (Date.now() >= S.autoAt) { cancelAutoNext(); go('turn'); window.scrollTo(0, 0); }
     }, 150);
   }
@@ -577,7 +577,7 @@
     const nums = Array.from({ length: T === 21 ? 20 : 10 }, (_, i) => `<button data-act="pts" data-v="${i + 1}">${i + 1}</button>`).join('');
     return `<div class="phone cream-bg" id="turn">${sbar}
       <div class="round-head"><div class="round-kicker">Round ${c.roundIdx + 1} of 12 · ${E.modeName(g.settings.mode)}</div><h1>Rolling for ${E.word(c.number)}</h1>${track('round')}</div>
-      <div class="whose">${av(p)}<div class="meta"><div class="who">${esc(poss(p.name))} roll</div><div class="sub">${team ? `For ${esc(team.name)} · one tap` : 'One tap to log it'}</div></div>
+      <div class="whose">${av(p)}<div class="meta"><div class="who">${esc(poss(p.name))} roll</div><div class="sub">${c.last && c.last.keepRolling && c.last.pid === p.id ? 'Mini Bunco! Keep rolling' : team ? `For ${esc(team.name)} · one tap` : 'One tap to log it'}</div></div>
         <div class="prog"><b>${prog} / ${T}</b><div class="bar"><span style="width:${Math.min(100, (prog / T) * 100)}%"></span></div></div></div>
       <div class="entry"><button class="nothing" data-act="none">Nothing</button>
         <div class="nums ${T === 10 ? 'flash10' : ''}">${nums}</div>

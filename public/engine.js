@@ -53,7 +53,9 @@
         // House rule: whoever wins the round starts the next one (in teams, the player who rolled it).
         const wi = order.indexOf(e.pid);
         turn = wi >= 0 ? wi : (turn + 1) % order.length;
-      } else turn = (turn + 1) % order.length;
+      } else if (e.kind !== 'mini') turn = (turn + 1) % order.length;
+      // A Mini Bunco keeps the same player rolling.
+      if (e.kind === 'mini' && !ev.cleared) ev.keepRolling = true;
       events.push(ev);
     }
     const units = settings.teams ? teams.map((t) => TM[t.id]) : players.map((p) => P[p.id]);

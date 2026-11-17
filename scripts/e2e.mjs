@@ -119,8 +119,9 @@ async function playGame(phones, cfg, label, shots) {
       ok(dis, `${label}: watchers can't enter in scorekeeper mode`);
     }
     await clearCelebs(ph);
-    await ph.waitForSelector('.next-cta:not([disabled])', { timeout: 8000 });
-    await ph.click('.next-cta');
+    // the phone may already have auto-advanced to the turn screen
+    await ph.waitForSelector('.next-cta:not([disabled]), .entry', { timeout: 8000 });
+    if (!(await ph.$('.entry'))) await ph.click('.next-cta').catch(() => {});
     await ph.waitForSelector('.entry');
     if (shots && n === 3 && !celebShot.turn) { celebShot.turn = 1; await shot(ph, cfg.teams ? '09b-turn-entry-team' : '09-turn-entry'); }
     const x = r(); let kind, value = 0;
@@ -132,7 +133,7 @@ async function playGame(phones, cfg, label, shots) {
     await waitFor(host, (len) => window.BT.S.game.log.length === len, before.logLen + 1);
     st = await S(host);
     if (st.roundIdx > before.roundIdx) { sawAdvance = true; if (!st.finished) { winnerChecks++; if (st.cur !== pid) winnerFails.push(`round ${before.roundIdx + 1}: winner ${pid}, next turn ${st.cur}`); } }
-    else if (!st.finished) { const o = await host.evaluate(() => window.BT.S.comp.order); if (st.cur !== o[(o.indexOf(pid) + 1) % o.length]) winnerFails.push(`order broke after ${pid}`); }
+    else if (!st.finished) { const o = await host.evaluate(() => window.BT.S.comp.order); if (st.cur !== (kind === 'mini' ? pid : o[(o.indexOf(pid) + 1) % o.length])) winnerFails.push(`order broke after ${pid}`); }
     // screenshots of celebrations as they play
     if (shots && (kind === 'bunco' || kind === 'mini') && !celebShot[kind]) {
       const w = phones[1].page; await w.waitForSelector(`.celeb-layer#${kind}`, { timeout: 4000 }).catch(() => {}); await w.waitForTimeout(1700);
@@ -159,7 +160,7 @@ async function playGame(phones, cfg, label, shots) {
       const others = await Promise.all(phones.map((q) => q.page.waitForFunction((len) => window.BT.S.game.log.length === len, before.logLen, { timeout: 8000 }).then(() => S(q.page))));
       ok(others.every((o) => o.roundIdx === before.roundIdx && o.cur === pid), `${label}: undo reopens the round on every phone`);
       // redo it
-      await clearCelebs(ph); await ph.click('.next-cta'); await ph.waitForSelector('.entry');
+      await clearCelebs(ph); await ph.waitForSelector('.next-cta:not([disabled]), .entry'); if (!(await ph.$('.entry'))) await ph.click('.next-cta').catch(() => {}); await ph.waitForSelector('.entry');
       if (kind === 'pts') await ph.click(`.nums button[data-v="${value}"], .n21-wrap button[data-v="${value}"]`); else await ph.click(`[data-act="${kind}"]`);
       await waitFor(host, (len) => window.BT.S.game.log.length === len, before.logLen + 1);
       st = await S(host);
