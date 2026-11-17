@@ -138,7 +138,11 @@
       const fresh = S.comp.events.filter((e) => e.seq > S.lastSeq);
       S.lastSeq = ls;
       fresh.forEach((ev) => { if (Date.now() - (ev.at || 0) < 45000) queueCelebrations(ev); });
-      if (S.view !== 'card' || g.status === 'finished') S.view = 'table';
+      const L = S.comp.last;
+      const stay = g.status === 'playing' && L && L.keepRolling && L.pid === S.comp.currentPid && canEnterFor(L.pid);
+      // Mini Bunco: skip the scorecard and go straight back to the same player's turn.
+      if (stay) S.view = 'turn';
+      else if (S.view !== 'card' || g.status === 'finished') S.view = 'table';
       if (g.status === 'finished') S.afterCeleb = 'results';
       if (S.view === 'table' && g.status === 'playing') scheduleAutoNext(); else cancelAutoNext();
       render(); playNext(); return;
