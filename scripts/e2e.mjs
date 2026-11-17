@@ -1,6 +1,6 @@
 // End-to-end: 4 phones (browser contexts) play full games in every mode combo.
 // Usage: BASE=http://127.0.0.1:8797 node scripts/e2e.mjs [classic-ind-everyone ...]  SHOTS=1 to save screenshots
-import { chromium } from '/workspace/envelopes-app/node_modules/playwright-core/index.mjs';
+import { chromium } from '/tmp/pw/node_modules/playwright-core/index.mjs';
 import fs from 'node:fs';
 const BASE = process.env.BASE || 'http://127.0.0.1:8797';
 const SHOTS = process.env.SHOTS === '1';

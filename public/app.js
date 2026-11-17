@@ -60,6 +60,7 @@
   // ---------- navigation ----------
   function go(view, opts) {
     S.view = view; S.err = '';
+    if (view !== 'table') cancelAutoNext();
     if (opts && opts.pid) S.cardPid = opts.pid;
     const path = S.code && !['home', 'join'].includes(view) && !view.startsWith('setup') ? '/g/' + S.code : view === 'join' ? '/join' : '/';
     if (location.pathname !== path) history.pushState({ view }, '', path);
@@ -139,6 +140,7 @@
       fresh.forEach((ev) => { if (Date.now() - (ev.at || 0) < 45000) queueCelebrations(ev); });
       if (S.view !== 'card' || g.status === 'finished') S.view = 'table';
       if (g.status === 'finished') S.afterCeleb = 'results';
+      if (S.view === 'table' && g.status === 'playing') scheduleAutoNext(); else cancelAutoNext();
       render(); playNext(); return;
     }
     if (ls < S.lastSeq) {
@@ -147,6 +149,20 @@
     }
     if (g.status === 'finished' && S.view === 'turn') S.view = 'table';
     render();
+  }
+  // After a turn: show the table, then hop to the next player's turn on phones that can enter it.
+  const AUTO_MS = 2500;
+  function cancelAutoNext() { if (S.autoTimer) clearInterval(S.autoTimer); S.autoTimer = null; S.autoArmed = false; S.autoAt = 0; }
+  function scheduleAutoNext() {
+    cancelAutoNext();
+    S.autoTimer = setInterval(() => {
+      const g = S.game;
+      if (!g || g.status !== 'playing' || S.view !== 'table' || $('#sheet')) { cancelAutoNext(); render(); return; }
+      if (!canEnterFor(S.comp.currentPid)) { cancelAutoNext(); return; }
+      if (S.celebOn || S.celebQ.length) { if (S.autoArmed) { S.autoArmed = false; render(); } return; }
+      if (!S.autoArmed) { S.autoArmed = true; S.autoAt = Date.now() + AUTO_MS; render(); return; }
+      if (Date.now() >= S.autoAt) { cancelAutoNext(); go('turn'); window.scrollTo(0, 0); }
+    }, 150);
   }
   function defaultView(prefer) {
     const g = S.game;
@@ -531,7 +547,7 @@
     const cur = pById(c.currentPid);
     let cta;
     if (c.finished) cta = `<button class="next-cta" data-act="go" data-view="results">See the final results</button>`;
-    else if (canEnterFor(c.currentPid)) cta = `<button class="next-cta ${myClaims().includes(c.currentPid) ? 'mine' : ''}" data-act="go" data-view="turn">${myClaims().includes(c.currentPid) && !isHost() ? 'Your roll! Enter it' : `Enter ${esc(poss(cur.name))} roll`}</button>`;
+    else if (canEnterFor(c.currentPid)) cta = `<button class="next-cta ${myClaims().includes(c.currentPid) ? 'mine' : ''} ${S.autoArmed ? 'auto' : ''}" style="--auto-ms:${AUTO_MS}ms" data-act="go" data-view="turn">${myClaims().includes(c.currentPid) && !isHost() ? 'Your roll! Enter it' : `Enter ${esc(poss(cur.name))} roll`}</button>`;
     else cta = `<button class="next-cta waiting" disabled>${g.settings.entry === 'keeper' ? `Scorekeeper is logging ${esc(poss(cur.name))} roll…` : `Waiting for ${esc(poss(cur.name))} roll…`}</button>`;
     const last = g.log[g.log.length - 1];
     const undo = last && (isHost() || last.cid === cid) ? `<button class="undo-link" data-act="undo">Undo last entry</button>` : '';

@@ -176,3 +176,7 @@ button:active:not(:disabled), [data-act]:active { transform: translateY(1px); }
 @keyframes sheetup { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 #toast { position: fixed; left: 50%; top: calc(max(env(safe-area-inset-top), 10px) + 8px); transform: translate(-50%, -20px); background: var(--ink); color: #FFFBF4; padding: 10px 16px; border-radius: 14px; font-weight: 800; font-size: 14px; z-index: 90; opacity: 0; pointer-events: none; transition: all .25s ease; max-width: 90vw; text-align: center; box-shadow: 0 10px 24px rgba(0,0,0,.25); }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.next-cta { position: relative; overflow: hidden; }
+.next-cta.auto::after { content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: rgba(255,255,255,.75); transform-origin: left; animation: autofill var(--auto-ms, 2500ms) linear forwards; }
+@keyframes autofill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
