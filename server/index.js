@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const E = require('../public/engine.js');
+const season = require('./season');
 
 const PORT = process.env.PORT || 8790;
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, '..', 'data', 'games.json');
@@ -70,7 +71,7 @@ function getGame(req, res) {
 
 // Validate a setup sent by the host (players, teams, order, settings).
 function sanitizeSetup(body) {
-  const mode = body.settings && body.settings.mode === 'flash' ? 'flash' : 'classic';
+  const mode = E.parseMode(body.settings && body.settings.mode);
   const entry = body.settings && body.settings.entry === 'keeper' ? 'keeper' : 'everyone';
   const teamsOn = !!(body.settings && body.settings.teams);
   const raw = Array.isArray(body.players) ? body.players.slice(0, 12) : [];
@@ -134,7 +135,7 @@ app.post('/api/games', (req, res) => {
   const g = {
     code, hostHash: sha(hostToken), status: 'setup', createdAt: Date.now(), updatedAt: Date.now(), version: 0, gameNo: 0,
     hostName: clean(req.body && req.body.hostName, 18),
-    settings: { mode: req.body && req.body.mode === 'flash' ? 'flash' : 'classic', entry: 'everyone', teams: false },
+    settings: { mode: E.parseMode(req.body && req.body.mode), entry: 'everyone', teams: false },
     players: [], teams: [], order: [], log: [], seq: 0, claims: {},
   };
   games.set(code, g);
@@ -188,7 +189,12 @@ app.post('/api/games/:code/entry', (req, res) => {
   if (!E.validEntry(g.settings.mode, kind, value)) return res.status(400).json({ error: 'bad_entry' });
   g.seq = (g.seq || 0) + 1;
   g.log.push({ seq: g.seq, pid: b.pid, kind, value, at: Date.now(), cid: clean(b.cid, 40) });
-  if (E.compute(g).finished) g.status = 'finished';
+  const after = E.compute(g);
+  if (after.finished) {
+    g.status = 'finished';
+    g.endedAt = Date.now();
+    season.recordGame(g, after);
+  }
   broadcast(g);
   res.json({ ok: true, game: publicGame(g) });
 });
@@ -217,6 +223,40 @@ app.post('/api/games/:code/rematch', (req, res) => {
   res.json({ ok: true, game: publicGame(g) });
 });
 
+// Host or a claimed player ends the game for everyone.
+app.post('/api/games/:code/end', (req, res) => {
+  const g = getGame(req, res); if (!g) return;
+  if (g.status !== 'playing') return res.status(409).json({ error: 'not_playing', game: publicGame(g) });
+  const b = req.body || {};
+  const claimed = Array.isArray(b.claims) ? b.claims : [];
+  const allowed = isHost(g, b.hostToken) || claimed.some((id) => g.players.some((p) => p.id === id));
+  if (!allowed) return res.status(403).json({ error: 'not_allowed' });
+  const c = E.compute(g);
+  if (c.roundsPlayed <= 0) {
+    g.status = 'cancelled';
+    g.endedAt = Date.now();
+    g.endedEarly = true;
+    broadcast(g);
+    return res.json({ ok: true, game: publicGame(g) });
+  }
+  g.status = 'finished';
+  g.endedEarly = true;
+  g.endedAt = Date.now();
+  season.recordGame(g, E.compute(g));
+  broadcast(g);
+  res.json({ ok: true, game: publicGame(g) });
+});
+
+// Holiday season standings (Thanksgiving–Christmas).
+app.get('/api/season', (req, res) => {
+  res.json({ season: season.snapshot(), standings: season.standings() });
+});
+app.post('/api/season/restore', (req, res) => {
+  const snap = req.body && req.body.snapshot;
+  const merged = season.mergeSnapshot(snap);
+  res.json({ ok: true, season: merged, standings: season.standings() });
+});
+
 // Put a game back after the server lost it (free hosting restarts wipe the disk).
 // Any phone that was in the game keeps a copy and can restore it; the host stays the host.
 app.post('/api/games/:code/restore', (req, res) => {
@@ -232,11 +272,13 @@ app.post('/api/games/:code/restore', (req, res) => {
     .filter((e) => ids.has(e.pid) && E.validEntry(setup.settings.mode, e.kind, e.kind === 'pts' ? e.value : 0))
     .map((e, i) => ({ seq: i + 1, pid: e.pid, kind: e.kind, value: e.kind === 'pts' ? e.value : 0, at: e.at || Date.now(), cid: clean(e.cid, 40) }));
   const g = {
-    code, hostHash: s.hostHash, status: ['setup', 'playing', 'finished'].includes(s.status) ? s.status : 'playing',
+    code, hostHash: s.hostHash, status: ['setup', 'playing', 'finished', 'cancelled'].includes(s.status) ? s.status : 'playing',
     createdAt: s.createdAt || Date.now(), updatedAt: Date.now(), version: s.version || 0, gameNo: s.gameNo || 1, hostName: clean(s.hostName, 18),
+    endedEarly: !!s.endedEarly, endedAt: s.endedAt,
     ...setup, log, seq: log.length, claims: {}, restoredAt: Date.now(),
   };
-  if (g.status !== 'setup') g.status = E.compute(g).finished ? 'finished' : 'playing';
+  if (g.status === 'cancelled') { /* keep cancelled */ }
+  else if (g.status !== 'setup') g.status = E.compute(g).finished ? 'finished' : 'playing';
   games.set(code, g);
   console.log(`Restored game ${code} from a player's phone (${log.length} entries)`);
   broadcast(g);

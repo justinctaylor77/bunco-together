@@ -3,11 +3,16 @@
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.BuncoEngine = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
-  const ROUNDS = [1, 2, 3, 4, 5, 6, 6, 5, 4, 3, 2, 1];
+  const CLASSIC_ROUNDS = [1, 2, 3, 4, 5, 6, 6, 5, 4, 3, 2, 1];
+  const LIGHTNING_ROUNDS = [1, 2, 3, 4, 5, 6];
+  const ROUNDS = CLASSIC_ROUNDS;
   const WORDS = ['ones', 'twos', 'threes', 'fours', 'fives', 'sixes'];
   const MINI = 5, BUNCO = 21;
-  const target = (mode) => (mode === 'flash' ? 10 : 21);
-  const modeName = (mode) => (mode === 'flash' ? 'Flash 10' : 'Classic 21');
+  const modes = { classic: 'classic', flash: 'flash', lightning: 'lightning' };
+  const parseMode = (m) => modes[m] || 'classic';
+  const roundsFor = (mode) => (parseMode(mode) === 'lightning' ? LIGHTNING_ROUNDS : CLASSIC_ROUNDS);
+  const target = (mode) => (parseMode(mode) === 'classic' ? 21 : 10);
+  const modeName = (mode) => ({ classic: 'Classic 21', flash: 'Family Favorite', lightning: 'Lightning' }[parseMode(mode)]);
   const word = (n) => WORDS[n - 1];
   const entryPoints = (e) => (e.kind === 'none' ? 0 : e.kind === 'mini' ? MINI : e.kind === 'bunco' ? BUNCO : e.value | 0);
 
@@ -22,6 +27,7 @@
     const { players, settings, log } = game;
     const order = game.order && game.order.length ? game.order : players.map((p) => p.id);
     const teams = settings.teams ? game.teams || [] : [];
+    const R = roundsFor(settings.mode);
     const T = target(settings.mode);
     const teamOf = {};
     teams.forEach((t) => t.members.forEach((m) => (teamOf[m] = t.id)));
@@ -41,7 +47,7 @@
       const tm = settings.teams ? TM[teamOf[e.pid]] : null;
       if (tm) { tm.points += pts; tm.round += pts; if (e.kind === 'mini') tm.mini++; if (e.kind === 'bunco') tm.bunco++; }
       const prog = tm ? tm.round : p.round;
-      const ev = { seq: e.seq, pid: e.pid, tid: tm ? tm.id : null, kind: e.kind, value: e.value, pts, roundIdx, number: ROUNDS[roundIdx], prog, cleared: false, at: e.at, cid: e.cid };
+      const ev = { seq: e.seq, pid: e.pid, tid: tm ? tm.id : null, kind: e.kind, value: e.value, pts, roundIdx, number: R[roundIdx], prog, cleared: false, at: e.at, cid: e.cid };
       if (prog >= T) {
         ev.cleared = true;
         p.won.push(roundIdx);
@@ -49,7 +55,7 @@
         Object.values(P).forEach((x) => (x.round = 0));
         Object.values(TM).forEach((x) => (x.round = 0));
         roundIdx++;
-        if (roundIdx >= ROUNDS.length) finished = true;
+        if (roundIdx >= R.length) finished = true;
         // House rule: whoever wins the round starts the next one (in teams, the player who rolled it).
         const wi = order.indexOf(e.pid);
         turn = wi >= 0 ? wi : (turn + 1) % order.length;
@@ -58,12 +64,17 @@
       if (e.kind === 'mini' && !ev.cleared) ev.keepRolling = true;
       events.push(ev);
     }
+    if (game.endedEarly) finished = true;
     const units = settings.teams ? teams.map((t) => TM[t.id]) : players.map((p) => P[p.id]);
+    const lastIdx = Math.max(R.length - 1, 0);
     return {
-      target: T, roundIdx: Math.min(roundIdx, 11), number: ROUNDS[Math.min(roundIdx, 11)], finished,
+      target: T, rounds: R, roundCount: R.length,
+      roundIdx: Math.min(roundIdx, lastIdx), number: R[Math.min(roundIdx, lastIdx)], finished,
       currentPid: finished ? null : order[turn], turn, order, players: P, teams: TM, teamOf, units, events,
       last: events[events.length - 1] || null,
       awards: finished ? awards(game, P, TM) : null,
+      endedEarly: !!game.endedEarly,
+      roundsPlayed: Math.min(roundIdx, R.length),
     };
   }
 
@@ -85,11 +96,46 @@
     };
   }
 
+  // Night winner: most rounds won, then points, then buncos. Ties share the win.
+  function gameWinnerIds(game, c) {
+    c = c || compute(game);
+    if (game.settings.teams) {
+      const teams = game.teams || [];
+      const ranked = teams.slice().sort((a, b) => {
+        const A = c.teams[a.id], B = c.teams[b.id];
+        return (B.won.length - A.won.length) || (B.points - A.points) || (B.bunco - A.bunco);
+      });
+      if (!ranked.length) return [];
+      const top = c.teams[ranked[0].id];
+      const tied = teams.filter((t) => {
+        const s = c.teams[t.id];
+        return s.won.length === top.won.length && s.points === top.points && s.bunco === top.bunco;
+      });
+      if (top.won.length <= 0 && top.points <= 0) return [];
+      return tied.flatMap((t) => t.members);
+    }
+    const ps = game.players;
+    const ranked = ps.slice().sort((a, b) => {
+      const A = c.players[a.id], B = c.players[b.id];
+      return (B.won.length - A.won.length) || (B.points - A.points) || (B.bunco - A.bunco);
+    });
+    if (!ranked.length) return [];
+    const top = c.players[ranked[0].id];
+    if (top.won.length <= 0 && top.points <= 0) return [];
+    return ps.filter((p) => {
+      const s = c.players[p.id];
+      return s.won.length === top.won.length && s.points === top.points && s.bunco === top.bunco;
+    }).map((p) => p.id);
+  }
+
   // Leaders for the table chips (current standing, ties allowed).
   function leaders(list, key) {
     const b = best(list, key);
     return b;
   }
 
-  return { ROUNDS, WORDS, MINI, BUNCO, target, modeName, word, entryPoints, validEntry, compute, leaders };
+  return {
+    ROUNDS, CLASSIC_ROUNDS, LIGHTNING_ROUNDS, WORDS, MINI, BUNCO,
+    parseMode, roundsFor, target, modeName, word, entryPoints, validEntry, compute, leaders, gameWinnerIds,
+  };
 });

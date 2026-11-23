@@ -6,7 +6,7 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "test": "node scripts/engine-test.js"
+    "test": "node scripts/engine-test.js && node scripts/season-test.js"
   },
   "engines": { "node": ">=20" },
   "dependencies": { "express": "^5.1.0" }

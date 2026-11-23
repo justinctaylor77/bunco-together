@@ -62,7 +62,8 @@
     S.view = view; S.err = '';
     if (view !== 'table') cancelAutoNext();
     if (opts && opts.pid) S.cardPid = opts.pid;
-    const path = S.code && !['home', 'join'].includes(view) && !view.startsWith('setup') ? '/g/' + S.code : view === 'join' ? '/join' : '/';
+    const path = S.code && !['home', 'join', 'season', 'trophy'].includes(view) && !view.startsWith('setup') ? '/g/' + S.code
+      : view === 'join' ? '/join' : view === 'season' ? '/season' : view === 'trophy' ? '/season/champion' : '/';
     if (location.pathname !== path) history.pushState({ view }, '', path);
     render();
     window.scrollTo(0, 0);
@@ -70,6 +71,8 @@
   window.addEventListener('popstate', () => {
     const m = location.pathname.match(/^\/g\/([A-Za-z0-9]{6})/);
     if (m) { if (S.code !== m[1].toUpperCase()) openGame(m[1].toUpperCase()); else { S.view = S.game && S.game.status === 'finished' ? 'results' : 'table'; render(); } }
+    else if (location.pathname === '/season/champion') { leaveGame(); S.view = 'trophy'; loadSeason().then(render); }
+    else if (location.pathname === '/season') { leaveGame(); S.view = 'season'; loadSeason().then(render); }
     else { leaveGame(); S.view = location.pathname === '/join' ? 'join' : 'home'; render(); }
   });
 
@@ -119,6 +122,10 @@
   function onGame(g) {
     const first = !S.game || S.game.code !== g.code;
     const prevStatus = S.game && S.game.status;
+    if (g.status === 'cancelled') {
+      S.game = g; store.set('bt.snap.' + g.code, g);
+      toast('Game ended'); leaveGame(); go('home'); return;
+    }
     if (S.game && !first && (g.version || 0) < (S.game.version || 0) && g.gameNo === S.game.gameNo) return; // older copy
     S.game = g; S.comp = E.compute(g);
     store.set('bt.snap.' + g.code, g);
@@ -143,7 +150,7 @@
       // Mini Bunco: skip the scorecard and go straight back to the same player's turn.
       if (stay) S.view = 'turn';
       else if (S.view !== 'card' || g.status === 'finished') S.view = 'table';
-      if (g.status === 'finished') S.afterCeleb = 'results';
+      if (g.status === 'finished') { S.afterCeleb = 'results'; refreshSeason(); }
       if (S.view === 'table' && g.status === 'playing') scheduleAutoNext(); else cancelAutoNext();
       render(); playNext(); return;
     }
@@ -151,7 +158,10 @@
       S.lastSeq = ls; toast('Last entry undone');
       if (['turn', 'results'].includes(S.view)) S.view = 'table';
     }
-    if (g.status === 'finished' && S.view === 'turn') S.view = 'table';
+    if (g.status === 'finished' && prevStatus === 'playing') {
+      refreshSeason();
+      S.view = 'results';
+    } else if (g.status === 'finished' && S.view === 'turn') S.view = 'table';
     render();
   }
   // After a turn: show the table, then hop to the next player's turn on phones that can enter it.
@@ -206,7 +216,7 @@
       <div class="celeb-kicker">${esc(p.name)} rolled it</div><div class="celeb-word">Mini<br>Bunco</div>
       <div class="celeb-sub">Three of a kind · five points on the board</div><div class="pts-bubble">+5</div></div></div>` };
     const who = team ? team.name : p.name;
-    const lastRound = ev.roundIdx >= 11;
+    const lastRound = ev.roundIdx >= (S.comp.roundCount - 1);
     const next = lastRound ? 'That was the last round!' : `On to ${E.word(E.ROUNDS[ev.roundIdx + 1])} · ${esc(p.name)} rolls first`;
     return { id: 'round', cls: 'felt-bg', ms: 3000, html: `<div class="overlay"><div class="rays"></div><div class="confetti">${confetti(30, ev.seq + 11)}</div><div class="sparkles">${sparks([1, 2, 3, 4, 5, 7])}</div>
       <div class="celeb-body"><div class="celeb-dice">${die(n, 'die-gold')}</div>
@@ -360,8 +370,9 @@
   const sbar = '<div class="sbar"></div>';
   function track(kind, pid) {
     const c = S.comp; let out = '';
-    E.ROUNDS.forEach((n, i) => {
-      if (i === 6) out += '<span class="tok-gap"></span>';
+    const R = c.rounds || E.roundsFor(S.game.settings.mode);
+    R.forEach((n, i) => {
+      if (R.length === 12 && i === 6) out += '<span class="tok-gap"></span>';
       let cls = 'soon';
       const done = c.finished || i < c.roundIdx, now = !c.finished && i === c.roundIdx;
       if (kind === 'card') {
@@ -372,7 +383,8 @@
     });
     return `<div class="track" aria-label="Rounds">${out}</div>`;
   }
-  const wonBadges = (won) => `<div class="won-badges">${won.map((i) => `<b>${E.ROUNDS[i]}s</b>`).join('')}</div>`;
+  const wonBadges = (won) => `<div class="won-badges">${won.map((i) => `<b>${(S.comp.rounds || E.ROUNDS)[i]}s</b>`).join('')}</div>`;
+  const roundLabel = (c) => `${c.roundIdx + 1} of ${c.roundCount}`;
   function leadText(list, key, nameOf) {
     const b = E.leaders(list, key);
     if (!b.ids.length) return '—';
@@ -398,12 +410,14 @@
         <div class="wordmark"><span class="bunco">BUNCO</span><span class="together">Together</span></div>
         <p class="tagline">Keep score together,<br>wherever you roll.</p></div>
       <div class="modes">
-        <div class="mode classic" data-act="mode" data-mode="classic" role="button"><div class="mode-badge">21</div><div><h2>Classic 21</h2><p>Twelve rounds. First to 21 wins the number, then everyone moves on.</p><span class="pill">Family favorite</span></div></div>
-        <div class="mode flash" data-act="mode" data-mode="flash" role="button"><div class="mode-badge">10<small>Flash</small></div><div><h2>Flash 10</h2><p>The same twelve rounds, twice the pace. First to 10 takes it.</p><span class="pill">Quick play</span></div></div>
+        <div class="mode flash favorite" data-act="mode" data-mode="flash" role="button"><div class="mode-badge">10<small>Flash</small></div><div><h2>Family Favorite</h2><p>Twelve rounds, twice the pace. First to 10 takes the number.</p><span class="pill">Family favorite</span></div></div>
+        <div class="mode classic" data-act="mode" data-mode="classic" role="button"><div class="mode-badge">21</div><div><h2>Classic 21</h2><p>Twelve rounds. First to 21 wins the number, then everyone moves on.</p><span class="pill">Traditional</span></div></div>
+        <div class="mode lightning" data-act="mode" data-mode="lightning" role="button"><div class="mode-badge">10<small>6 rds</small></div><div><h2>Lightning</h2><p>Same 10-point rounds, just once through the numbers — ones to sixes.</p><span class="pill">Quick play</span></div></div>
       </div>
       ${resume}
       ${draft && draft.code ? `<a class="join-link" data-act="resume-setup">Finish setting up room ${fmtCode(draft.code)}</a>` : ''}
       <a class="join-link" data-act="go" data-view="join">Have a room code? Join a game</a>
+      <button class="season-link" data-act="open-season"><span>Holiday Season standings</span><b>Thanksgiving – Christmas ›</b></button>
       <div class="start-foot">Played over FaceTime · scored together</div></div>`;
   };
 
@@ -515,10 +529,10 @@
     const c = S.comp, st = c.players[p.id], g = S.game;
     const flash = c.last && c.last.pid === p.id ? 'flash' : '';
     const up = !c.finished && c.currentPid === p.id ? '<span class="up">Up</span>' : '';
-    const prog = opts.team ? `${st.round} this round` : `${st.round} / ${c.target} this round`;
-    const bar = opts.team ? '' : `<span class="rb"><i style="width:${Math.min(100, (st.round / c.target) * 100)}%"></i></span>`;
+    const thisRound = opts.team ? (c.teams[c.teamOf[p.id]] ? c.teams[c.teamOf[p.id]].round : st.round) : st.round;
     return `<div class="prow ${flash}" data-act="card" data-p="${p.id}" style="${flash ? `--sarah:${p.color}` : ''}">
-      <div class="who">${av(p, 'sm')}<div><div class="nm">${esc(p.name)}${up}${myClaims().includes(p.id) ? ' <span style="font-size:10px;color:var(--ink-faint)">(you)</span>' : ''}</div><div class="round-pts">${prog}${bar}</div></div></div>
+      <div class="who">${av(p, 'sm')}<div><div class="nm">${esc(p.name)}${up}${myClaims().includes(p.id) ? ' <span style="font-size:10px;color:var(--ink-faint)">(you)</span>' : ''}</div></div></div>
+      <div class="stat this-round" aria-label="This round">${c.finished ? '—' : thisRound}</div>
       <div class="stat">${st.points}</div><div><div class="stat">${st.won.length}</div>${wonBadges(st.won)}</div><div class="stat">${st.mini}</div><div class="stat">${st.bunco}</div></div>`;
   }
 
@@ -538,15 +552,15 @@
     const g = S.game, c = S.comp;
     if (g.status === 'setup') return V.hostWait();
     const teamsOn = g.settings.teams;
-    const kicker = `The table${teamsOn ? ' · Teams' : ''} · ${c.finished ? 'Final' : `Round ${c.roundIdx + 1} of 12`}`;
+    const kicker = `The table${teamsOn ? ' · Teams' : ''} · ${c.finished ? (c.endedEarly ? 'Ended early' : 'Final') : `Round ${roundLabel(c)}`}`;
     const units = teamsOn ? g.teams : g.players;
     const unitStats = (id) => (teamsOn ? c.teams[id] : c.players[id]);
     const nameOf = (id) => (teamsOn ? tById(id).name : pById(id).name);
     const list = units.map((u) => unitStats(u.id));
     let rows;
-    if (!teamsOn) rows = `<div class="cols"><span>Player</span><span>Points</span><span>Won</span><span>Mini</span><span>Bunco</span></div>${c.order.map((id) => prowHTML(pById(id), {})).join('')}`;
-    else rows = `<div class="tcols"><span>Player</span><span>Points</span><span>Won</span><span>Mini</span><span>Bunco</span></div>` + g.teams.map((t) => { const ts = c.teams[t.id];
-      return `<div class="tcard" style="--team:${t.color}"><div class="thead"><div class="tn">${esc(t.name)}</div><div class="tstats"><div><b>${ts.round}/${c.target}</b><em>Round</em></div><div><b>${ts.points}</b><em>Points</em></div><div><b>${ts.won.length}</b><em>Won</em></div></div></div>
+    if (!teamsOn) rows = `<div class="cols"><span>Player</span><span class="this-round-h">This round</span><span>Points</span><span>Won</span><span>Mini</span><span>Bunco</span></div>${c.order.map((id) => prowHTML(pById(id), {})).join('')}`;
+    else rows = `<div class="tcols"><span>Player</span><span class="this-round-h">This round</span><span>Points</span><span>Won</span><span>Mini</span><span>Bunco</span></div>` + g.teams.map((t) => { const ts = c.teams[t.id];
+      return `<div class="tcard" style="--team:${t.color}"><div class="thead"><div class="tn">${esc(t.name)}</div><div class="tstats"><div class="t-this"><b>${ts.round}/${c.target}</b><em>This round</em></div><div><b>${ts.points}</b><em>Points</em></div><div><b>${ts.won.length}</b><em>Won</em></div></div></div>
         ${t.members.map((m) => prowHTML(pById(m), { team: true })).join('')}</div>`; }).join('');
     const cur = pById(c.currentPid);
     let cta;
@@ -555,6 +569,7 @@
     else cta = `<button class="next-cta waiting" disabled>${g.settings.entry === 'keeper' ? `Scorekeeper is logging ${esc(poss(cur.name))} roll…` : `Waiting for ${esc(poss(cur.name))} roll…`}</button>`;
     const last = g.log[g.log.length - 1];
     const undo = last && (isHost() || last.cid === cid) ? `<button class="undo-link" data-act="undo">Undo last entry</button>` : '';
+    const endBtn = !c.finished ? `<button class="end-link" data-act="end-game">End game</button>` : '';
     const me = myClaims().map((id) => pById(id)).filter(Boolean).map((p) => p.name).join(' & ');
     return `<div class="phone felt-bg">${sbar}<div class="table-wrap">
       <div class="table-head"><div class="kicker">${kicker}</div><h1>${c.finished ? 'That\u2019s the game!' : `Rolling for ${E.word(c.number)}`}</h1></div>
@@ -567,7 +582,7 @@
       ${lastPlayHTML()}
       ${rows}
       <div class="table-actions"><div class="jump"><div class="lbl">Player cards</div><div class="avs">${c.order.map((id) => av(pById(id), 'sm', `data-act="card" data-p="${id}"`)).join('')}</div></div>${cta}</div>
-      ${undo}</div></div>`;
+      ${undo}${endBtn}</div></div>`;
   };
   V.hostWait = () => `<div class="phone felt-bg">${sbar}<div class="wait-body"><h2>Finishing setup…</h2></div></div>`;
 
@@ -580,15 +595,19 @@
     const team = g.settings.teams ? tById(c.teamOf[p.id]) : null;
     const nums = Array.from({ length: T === 21 ? 20 : 10 }, (_, i) => `<button data-act="pts" data-v="${i + 1}">${i + 1}</button>`).join('');
     return `<div class="phone cream-bg" id="turn">${sbar}
-      <div class="round-head"><div class="round-kicker">Round ${c.roundIdx + 1} of 12 · ${E.modeName(g.settings.mode)}</div><h1>Rolling for ${E.word(c.number)}</h1>${track('round')}</div>
+      <div class="round-head"><div class="round-kicker">Round ${roundLabel(c)} · ${E.modeName(g.settings.mode)}</div><h1>Rolling for ${E.word(c.number)}</h1>${track('round')}</div>
       <div class="whose">${av(p)}<div class="meta"><div class="who">${esc(poss(p.name))} roll</div><div class="sub">${c.last && c.last.keepRolling && c.last.pid === p.id ? 'Mini Bunco! Keep rolling' : team ? `For ${esc(team.name)} · one tap` : 'One tap to log it'}</div></div>
         <div class="prog"><b>${prog} / ${T}</b><div class="bar"><span style="width:${Math.min(100, (prog / T) * 100)}%"></span></div></div></div>
-      <div class="entry"><button class="nothing" data-act="none">Nothing</button>
-        <div class="nums ${T === 10 ? 'flash10' : ''}">${nums}</div>
-        ${T === 21 ? '<div class="n21-wrap"><button data-act="pts" data-v="21">21</button></div>' : ''}
-        <div class="specials"><button class="btn-mini" data-act="mini"><span class="lbl">Mini Bunco</span><span class="hint">3 of a kind, not ${c.number}s</span><span class="pts">worth 5</span></button>
-          <button class="btn-bunco" data-act="bunco"><span class="lbl">Bunco</span><span class="hint">three ${c.number}s</span><span class="pts">worth 21</span></button></div>
-        <a class="view-table" data-act="go" data-view="table">View the table</a></div></div>`;
+      <div class="entry">
+        <div class="pad">
+          <div class="nums ${T === 10 ? 'flash10' : ''}">${nums}</div>
+          ${T === 21 ? '<div class="n21-wrap"><button data-act="pts" data-v="21">21</button></div>' : ''}
+          <div class="specials"><button class="btn-mini" data-act="mini"><span class="lbl">Mini Bunco</span><span class="hint">3 of a kind, not ${c.number}s</span><span class="pts">worth 5</span></button>
+            <button class="btn-bunco" data-act="bunco"><span class="lbl">Bunco</span><span class="hint">three ${c.number}s</span><span class="pts">worth 21</span></button></div>
+        </div>
+        <button class="nothing" data-act="none">Nothing</button>
+        <a class="view-table" data-act="go" data-view="table">View the table</a>
+        <button class="end-link cream" data-act="end-game">End game</button></div></div>`;
   };
 
   function rankChip(list, key, id, label) {
@@ -608,14 +627,14 @@
     const prog = roundProgOf(p.id);
     const ps = g.players.map((x) => c.players[x.id]);
     const ch1 = rankChip(ps, (x) => x.won.length, p.id, 'rounds'), ch2 = rankChip(ps, (x) => x.points, p.id, 'points');
-    const wonList = st.won.map((i) => E.ROUNDS[i] + 's');
+    const wonList = st.won.map((i) => (c.rounds || E.ROUNDS)[i] + 's');
     const caption = wonList.length ? `Won the ${wonList.length > 1 ? wonList.slice(0, -1).join(', ') + ' and ' + wonList[wonList.length - 1] : wonList[0]}` : 'No rounds won yet';
     return `<div class="phone cream-bg" id="card">${sbar}<div class="card-screen">
       <div class="topbar"><div class="back" data-act="go" data-view="table">‹</div><div class="chip" data-act="go" data-view="table">The table</div><div style="width:36px"></div></div>
       <div class="portrait">${av(p, 'lg')}<h1>${esc(p.name)}</h1><div class="role">${team ? esc(team.name) : 'Player ' + (g.players.indexOf(p) + 1)} · ${E.modeName(g.settings.mode)}${!c.finished && c.currentPid === p.id ? ' · rolling now' : ''}</div>
         <div class="stand-chips">${ch1 ? `<span>${ch1}</span>` : ''}${ch2 ? `<span class="alt">${ch2}</span>` : ''}${!ch1 && !ch2 ? '<span>Just getting started</span>' : ''}</div></div>
       <div class="big-score"><div class="k pts">Points</div><div class="v">${st.points}</div>
-        ${c.finished ? '<div class="this-round"><span>Game over</span><span>12 rounds</span></div>' : `<div class="this-round"><span>This round · ${E.word(c.number)}${team ? ' (team)' : ''}</span><span>${prog} / ${c.target}</span></div><div class="bar" style="margin-top:8px"><span style="width:${Math.min(100, (prog / c.target) * 100)}%"></span></div>`}</div>
+        ${c.finished ? `<div class="this-round"><span>Game over</span><span>${c.roundsPlayed} of ${c.roundCount} rounds</span></div>` : `<div class="this-round"><span>This round · ${E.word(c.number)}${team ? ' (team)' : ''}</span><span>${prog} / ${c.target}</span></div><div class="bar" style="margin-top:8px"><span style="width:${Math.min(100, (prog / c.target) * 100)}%"></span></div>`}</div>
       <div class="stat-grid"><div class="stat-tile"><div class="k">Rounds won</div><div class="v">${st.won.length}</div><div class="extra won-badges">${st.won.map((i) => `<b>${E.ROUNDS[i]}s</b>`).join('')}</div></div>
         <div class="stat-tile"><div class="k">Mini Bunco</div><div class="v">${st.mini}</div></div><div class="stat-tile"><div class="k">Bunco</div><div class="v">${st.bunco}</div></div></div>
       <div class="levels"><div class="k">Rounds this game${team ? ' · team' : ''}</div>${track('card', p.id)}<div class="caption">${team ? `${esc(team.name)}: ${c.teams[team.id].won.length} won · ` : ''}${caption}</div></div>
@@ -656,7 +675,7 @@
     const head = '<div class="fh"><span>Standings</span><span>Won</span><span>Points</span><span>Bunco</span><span>Mini</span></div>';
     return `<div class="phone is-playing" id="results">${sbar}
       <div class="confetti">${confetti(26, g.gameNo * 7 + 1)}</div><div class="sparkles">${sparks([1, 2, 5, 7])}</div>
-      <div class="results"><div class="results-head"><div class="kicker">${E.modeName(g.settings.mode)} · 12 rounds${T ? ' · Teams' : ''}</div><h1>That\u2019s a wrap!</h1><p>Four ways to win — and four winners.</p></div>
+      <div class="results"><div class="results-head"><div class="kicker">${E.modeName(g.settings.mode)} · ${c.endedEarly ? `Ended early · ${c.roundsPlayed} of ${c.roundCount} rounds` : `${c.roundCount} rounds`}${T ? ' · Teams' : ''}</div><h1>That\u2019s a wrap!</h1><p>Four ways to win — and four winners.</p></div>
         <div class="awards">${awardHTML('rounds', 'Most rounds won', A.rounds, 'rounds', T)}${awardHTML('points', 'Most points', A.points, 'points', T)}${awardHTML('buncos', 'Most buncos', A.buncos, 'buncos', false)}${awardHTML('minis', 'Most mini buncos', A.minis, 'minis', false)}</div>
         ${T ? `<div class="final-table"><div class="sec">Teams</div>${head}${tRows}</div>` : ''}
         <div class="final-table">${T ? '<div class="sec">Players</div>' : ''}${head}${pRows}</div>
@@ -665,11 +684,114 @@
         <button class="link-btn" data-act="newgame">New game</button></div></div>`;
   };
 
+  // ---------- holiday season ----------
+  const CROWN = `<svg class="crown" viewBox="0 0 22 18" aria-label="1st place"><path d="M1.8 14.2h18.4c.5 0 .9-.4.8-1L19.2 6.2c-.1-.5-.7-.6-1-.3L15.2 8.5 11.8 1.7c-.2-.5-.9-.5-1.1 0L7.3 8.5 4.3 5.9c-.3-.3-.9-.2-1 .3L1 13.2c-.1.6.3 1 .8 1Z" fill="#A3740C"/><path d="M2.2 13.7h17.6c.35 0 .6-.3.55-.55L18.8 6.6c0-.25-.35-.35-.5-.15l-3.1 2.5-3.5-7c-.15-.3-.5-.3-.65 0l-3.5 7-3.1-2.5c-.15-.2-.5-.1-.5.15L2.7 13.15c0 .25.2.55.55.55Z" fill="#F0C14B"/><path d="M7.4 8.6 10.75 2.2 14.1 8.6 18.4 5.2 17.2 11.2H4.3L5.6 5.2Z" fill="#F8E4A8"/><rect x="1.8" y="13.6" width="18.4" height="3.2" rx="0.9" fill="#C48E10"/><rect x="2.2" y="13.7" width="17.6" height="2" rx="0.7" fill="#F8E4A8"/><circle cx="11" cy="7.2" r="1.2" fill="#FFF6D4"/><circle cx="5.2" cy="8.6" r="0.85" fill="#FFF6D4"/><circle cx="16.8" cy="8.6" r="0.85" fill="#FFF6D4"/></svg>`;
+
+  function nightLabel(ts) {
+    const d = new Date(ts);
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', month: 'short', day: 'numeric' }).formatToParts(d);
+    const month = parts.find((x) => x.type === 'month').value;
+    const day = parts.find((x) => x.type === 'day').value;
+    const iso = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    if (iso === '2026-11-26') return 'Thanksgiving';
+    if (iso === '2026-12-25') return 'Christmas';
+    return month + ' ' + day;
+  }
+
+  async function loadSeason() {
+    const local = store.get('bt.season', { version: 1, games: [] });
+    let remote = null;
+    try {
+      const r = await api('GET', '/api/season');
+      if (r.ok) remote = r.data;
+    } catch (e) {}
+    const localGames = (local && local.games) || [];
+    const remoteGames = (remote && remote.season && remote.season.games) || [];
+    const remoteIds = new Set(remoteGames.map((g) => g.id));
+    const extra = localGames.filter((g) => g && g.id && !remoteIds.has(g.id));
+    if (extra.length) {
+      const rr = await api('POST', '/api/season/restore', { snapshot: local }).catch(() => ({ ok: false }));
+      if (rr.ok) remote = rr.data;
+    }
+    if (remote && remote.season) store.set('bt.season', remote.season);
+    S.standings = (remote && remote.standings) || S.standings || { rows: [], nights: [], gameCount: 0 };
+    return S.standings;
+  }
+  function refreshSeason() { loadSeason().catch(() => {}); }
+
+  function confirmEnd() {
+    sheet(`<h3>End this game for everyone?</h3><p>This stops the game on every phone. If you’ve already played a round, you’ll see the results. If not, everyone goes home.</p>
+      <div class="row"><button class="cta ghost" data-act="sheet-close">Cancel</button><button class="cta danger" data-act="end-yes">End game</button></div>`);
+  }
+  async function endGame() {
+    closeSheet();
+    const r = await api('POST', `/api/games/${S.code}/end`, { cid, hostToken: hostToken(), claims: myClaims() }).catch(() => ({ ok: false, data: {} }));
+    if (r.ok && r.data.game) { onGame(r.data.game); return; }
+    if (r.data && r.data.game) onGame(r.data.game);
+    toast(r.status === 403 ? 'Only someone in this game can end it' : 'Couldn’t end the game, try again');
+  }
+
+  V.season = () => {
+    document.body.className = 'felt';
+    const st = S.standings || { rows: [], nights: [], gameCount: 0 };
+    const rows = st.rows || [];
+    const nights = (st.nights || []).slice(-4);
+    const empty = !rows.length;
+    const board = empty
+      ? `<div class="board empty-board"><p>No games yet this season. Play from Thanksgiving through Christmas, and wins will land here.</p></div>`
+      : `<div class="board"><div class="bh"><span class="c-rank"></span><span class="c-who">Player</span><span class="c-nr">Games / Rds</span><span class="c-pts">Pts</span><span class="c-bm">B · M</span></div>
+        ${rows.map((r, i) => `<div class="brow ${i === 0 ? 'first' : ''}">
+          <div class="c-rank">${i === 0 ? CROWN : `<span class="rank-num">${i + 1}</span>`}</div>
+          <div class="c-who">${av({ name: r.name, color: r.color }, 'sm')}<span class="name">${esc(r.name)}</span></div>
+          <div class="c-nr"><b>${r.games}</b> / ${r.rounds}</div>
+          <div class="c-pts">${r.points}</div>
+          <div class="c-bm">${r.bunco} · ${r.mini}</div>
+        </div>`).join('')}</div>`;
+    const nightRow = nights.length ? `<div class="nights"><div class="label">Recent games</div><div class="nights-row">${nights.map((n) => {
+      const w = (n.winners && n.winners[0]) || { name: '—', color: '#1F7A63' };
+      const names = (n.winners || []).map((x) => x.name).join(' & ') || '—';
+      return `<div class="night">${av({ name: w.name, color: w.color })}<div class="when">${esc(nightLabel(n.endedAt))}</div><div class="who">${esc(names)}</div></div>`;
+    }).join('')}</div></div>` : '';
+    const champBanner = st.champion ? `<button class="champ-banner" data-act="go" data-view="trophy"><span class="ribbon">Christmas Bunco Champion</span><span class="champ-name">${esc(st.champion.name)}</span><span class="champ-meta">${st.champion.games} game${st.champion.games === 1 ? '' : 's'} · ${st.champion.rounds} rounds · ${st.champion.points} pts</span></button>` : '';
+    const sub = st.seasonOver ? 'The season is over — see who took the trophy.' : 'Thanksgiving – Christmas 2026';
+    return `<div class="phone felt-bg" id="leaderboard">${sbar}
+      <div class="topbar"><div class="back" data-act="home">‹</div><div class="chip">Holiday Season</div><div style="width:36px"></div></div>
+      <header class="season-head"><div class="kicker">Family season standings</div><h1>Holiday Season 2026</h1><div class="sub">${st.gameCount ? `${esc(sub)} · ${st.gameCount} game${st.gameCount === 1 ? '' : 's'}` : esc(sub)}</div></header>
+      ${champBanner}${board}${nightRow}
+      <div class="actions" style="margin-top:12px;padding:0 18px 8px"><button class="cta gold" data-act="home">Start a game night</button></div></div>`;
+  };
+
+  V.trophy = () => {
+    document.body.className = 'felt';
+    const ch = (S.standings && S.standings.champion) || (S.standings && S.standings.rows && S.standings.rows[0]);
+    if (!ch) { S.view = 'season'; return V.season(); }
+    const st = S.standings;
+    const best = (key, label) => {
+      const rows = st.rows || [];
+      const max = rows.reduce((m, r) => Math.max(m, r[key] || 0), 0);
+      const tops = rows.filter((r) => r[key] === max && max > 0);
+      if (!tops.length) return { name: '—', value: 0, color: '#1F7A63' };
+      return { name: tops.map((t) => t.name).join(' & '), value: max, color: tops[0].color, unit: label };
+    };
+    const aRounds = best('rounds', 'rounds'), aPts = best('points', 'points'), aBunco = best('bunco', 'buncos'), aMini = best('mini', 'minis');
+    const award = (cls, cat, a) => `<div class="award ${cls}"><div class="cat">${cat}</div>${av({ name: a.name, color: a.color }, 'sm')}<div class="who">${esc(a.name)}</div><div class="num">${a.value}</div><div class="unit">${a.unit}</div></div>`;
+    return `<div class="phone trophy-bg" id="trophy">${sbar}
+      <div class="rays" aria-hidden="true"></div>
+      <div class="topbar"><div class="back" data-act="go" data-view="season">‹</div><div class="chip">Champion</div><div style="width:36px"></div></div>
+      <div class="trophy-art"><div class="trophy-cup" aria-hidden="true">🏆</div></div>
+      <div class="champ-block"><div class="ribbon">Christmas Bunco Champion</div>
+        <div class="champ-who">${av({ name: ch.name, color: ch.color }, 'lg')}<div class="nm"><div class="label">The winner is</div><div class="name">${esc(ch.name)}</div></div></div>
+        <div class="champ-stats"><b>${ch.games}</b> game${ch.games === 1 ? '' : 's'} won · <b>${ch.rounds}</b> rounds · <b>${ch.points}</b> points</div>
+      </div>
+      <div class="awards">${award('rounds', 'Most rounds won', aRounds)}${award('points', 'Most points', aPts)}${award('buncos', 'Most buncos', aBunco)}${award('minis', 'Most mini buncos', aMini)}</div>
+      <div class="actions" style="padding:0 18px 12px"><button class="cta gold" data-act="go" data-view="season">Back to the leaderboard</button></div></div>`;
+  };
+
   // ---------- render + events ----------
   function render() {
     const app = $('#app');
     const fn = V[S.view] || V.home;
-    if (!S.game && !['home', 'join'].includes(S.view) && !S.view.startsWith('setup')) {
+    if (!S.game && !['home', 'join', 'season', 'trophy'].includes(S.view) && !S.view.startsWith('setup')) {
       app.innerHTML = `<div class="phone felt-bg">${sbar}<div class="wait-body"><div class="lockup on-felt"><span class="bunco" style="font-size:44px">BUNCO</span><span class="together" style="font-size:34px">Together</span></div><h2>Finding your table…</h2><p>If the app was asleep this can take up to 30 seconds.</p></div></div>`;
       document.body.className = 'felt';
       return;
@@ -743,6 +865,9 @@
     'undo-yes': () => undo(),
     rematch: () => rematch(),
     newgame: () => { leaveGame(); go('home'); },
+    'end-game': () => confirmEnd(),
+    'end-yes': () => endGame(),
+    'open-season': () => { S.view = 'season'; go('season'); loadSeason().then(render); },
   };
   document.addEventListener('click', (e) => {
     const t = e.target.closest('[data-act]');
@@ -792,7 +917,9 @@
     const q = new URLSearchParams(location.search);
     if (m) { openGame(m[1].toUpperCase()); render(); }
     else if (location.pathname === '/join') { S.view = 'join'; S.prefillCode = (q.get('code') || '').toUpperCase(); render(); }
-    else { S.view = 'home'; render(); }
+    else if (location.pathname === '/season/champion') { S.view = 'trophy'; render(); loadSeason().then(render); }
+    else if (location.pathname === '/season') { S.view = 'season'; render(); loadSeason().then(render); }
+    else { S.view = 'home'; render(); loadSeason().catch(() => {}); }
     const splash = $('#splash');
     const seen = sessionStorage.getItem('bt.splash');
     const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
