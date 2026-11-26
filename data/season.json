@@ -65,6 +65,35 @@
           "gameWin": false
         }
       ]
+    },
+    {
+      "id": "DJJTDS:1",
+      "code": "DJJTDS",
+      "gameNo": 1,
+      "mode": "flash",
+      "teams": false,
+      "endedAt": 1795733546782,
+      "endedEarly": false,
+      "players": [
+        {
+          "name": "Robert",
+          "color": "#1F7A63",
+          "points": 80,
+          "rounds": 5,
+          "bunco": 0,
+          "mini": 2,
+          "gameWin": false
+        },
+        {
+          "name": "Connie",
+          "color": "#C45B4A",
+          "points": 128,
+          "rounds": 7,
+          "bunco": 2,
+          "mini": 4,
+          "gameWin": true
+        }
+      ]
     }
   ]
 }
