@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "games": [
+    {
+      "id": "D72JV9:1",
+      "code": "D72JV9",
+      "gameNo": 1,
+      "mode": "flash",
+      "teams": false,
+      "endedAt": 1795717480024,
+      "endedEarly": false,
+      "players": [
+        {
+          "name": "Tim",
+          "color": "#1F7A63",
+          "points": 77,
+          "rounds": 3,
+          "bunco": 1,
+          "mini": 2,
+          "gameWin": false
+        },
+        {
+          "name": "Amanda",
+          "color": "#C45B4A",
+          "points": 62,
+          "rounds": 2,
+          "bunco": 1,
+          "mini": 1,
+          "gameWin": false
+        },
+        {
+          "name": "Mom",
+          "color": "#C48E10",
+          "points": 63,
+          "rounds": 1,
+          "bunco": 1,
+          "mini": 2,
+          "gameWin": false
+        },
+        {
+          "name": "John",
+          "color": "#6B5C9E",
+          "points": 48,
+          "rounds": 2,
+          "bunco": 0,
+          "mini": 0,
+          "gameWin": false
+        },
+        {
+          "name": "Connie",
+          "color": "#3D7EA6",
+          "points": 78,
+          "rounds": 3,
+          "bunco": 1,
+          "mini": 4,
+          "gameWin": true
+        },
+        {
+          "name": "James",
+          "color": "#B5487A",
+          "points": 35,
+          "rounds": 1,
+          "bunco": 0,
+          "mini": 1,
+          "gameWin": false
+        }
+      ]
+    }
+  ]
+}
